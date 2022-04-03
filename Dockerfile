@@ -21,7 +21,7 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/p
 # install ignition
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-      ignition-fortress \
+      ignition-citadel \
       ros-noetic-ros-ign-gazebo \
       ros-noetic-ros-ign-bridge \
     && rm -rf /var/apt/lists/*
