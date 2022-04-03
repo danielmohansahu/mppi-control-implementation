@@ -53,16 +53,6 @@ See original:
       </inertial>
     </link>
 
-    <gazebo reference="${prefix}_wheel_link">
-      <material>Gazebo/DarkGrey</material>
-      <selfCollide>false</selfCollide>
-      <mu1 value="0.5"/>
-      <mu2 value="0.5"/>
-      <kp value="10000000.0" />
-      <kd value="1" />
-      <fdir1 value="1 0 0"/>
-    </gazebo>
-
     <joint name="${prefix}_wheel" type="continuous">
       <parent link="chassis_link"/>
       <child link="${prefix}_wheel_link" />
@@ -249,9 +239,6 @@ See original:
     <child link="front_mount" />
     <origin xyz="${mount_spacing} 0 0" />
   </joint>
-
-  <!-- Bring in simulation data for Gazebo. -->
-  <xacro:include filename="$(find jackal_description)/urdf/jackal.gazebo" />
 
   <!-- Optional standard accessories, including their simulation data. The rendering
        of these into the final description is controlled by optenv variables, which
