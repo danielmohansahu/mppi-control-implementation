@@ -10,6 +10,10 @@ The entirety of this project is encapsulated inside a Docker image for portabili
 **Security note:** We use the `docker run --privileged` flag to allow Docker to launch GUIs. This is not a "safe" command to execute and should be used with caution.
 
 ```bash
+# xhost allow Docker; unsafe command!
+xhost +si:localuser:root
+
+# build image and drop into a container
 ./build_and_run.sh
 ```
 
