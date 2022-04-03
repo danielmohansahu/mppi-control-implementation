@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(RUNTIME_DEPS
   jackal_description
   ros_ign_gazebo
+  ros_ign_bridge
 )
 
 ## Find catkin macros and libraries
