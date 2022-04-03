@@ -22,12 +22,15 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/p
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       ignition-fortress \
+      ros-noetic-ros-ign-gazebo \
+      ros-noetic-ros-ign-bridge \
     && rm -rf /var/apt/lists/*
 
 # install ROS packages
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       python3-catkin-tools \
+      ros-noetic-jackal-description \
       ros-noetic-jackal-simulator \
       ros-noetic-jackal-navigation \
     && rm -rf /var/apt/lists/*
