@@ -3,6 +3,7 @@ logs/
 build/
 bin/
 lib/
+imstall/
 msg_gen/
 srv_gen/
 msg/*Action.msg
@@ -49,3 +50,7 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+
+# Vim
+*.swp
+
