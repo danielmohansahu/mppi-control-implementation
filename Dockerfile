@@ -5,7 +5,7 @@ FROM ros:noetic as ros-base
 # install basic utilities
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       vim \
       gdb \
       byobu \
@@ -20,16 +20,15 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/p
 
 # install ignition
 RUN apt-get update \
-    && apt-get install -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       ignition-fortress \
     && rm -rf /var/apt/lists/*
 
 # install ROS packages
 RUN apt-get update \
-    && apt-get install -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       python3-catkin-tools \
       ros-noetic-jackal-simulator \
-      ros-noetic-jackal-desktop \
       ros-noetic-jackal-navigation \
     && rm -rf /var/apt/lists/*
 
