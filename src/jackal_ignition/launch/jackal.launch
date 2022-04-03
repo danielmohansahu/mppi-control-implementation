@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- load Jackal Gazebo model -->
+  <env name="IGN_GAZEBO_SYSTEM_PLUGIN_PATH" value="$(optenv LD_LIBRARY_PATH)" />
+  <node pkg="ros_ign_gazebo" type="ign_gazebo" name="ign_gazebo" output="screen" required="true" 
+        args="-r -v 3 diff_drive.sdf">
+  </node>
+
+  <!-- map Ignition topics to ROS topics -->
+  <node pkg="ros_ign_bridge" type="parameter_bridge" name="$(anon ros_ign_bridge)" output="screen"
+        args="/model/vehicle_blue/cmd_vel@geometry_msgs/Twist@ignition.msgs.Twist /model/vehicle_blue/odometry@nav_msgs/Odometry@ignition.msgs.Odometry /model/vehicle_green/cmd_vel@geometry_msgs/Twist@ignition.msgs.Twist /model/vehicle_green/odometry@nav_msgs/Odometry@ignition.msgs.Odometry">
+  </node>
+
+</launch>
