@@ -13,7 +13,7 @@
   </include>
 
   <!-- generate Jackal's URDF as a robot_description -->
-  <param name="$(arg namespace)/robot_description" command="$(find xacro)/xacro $(find jackal_description)/urdf/jackal.urdf.xacro" />
+  <param name="$(arg namespace)/robot_description" command="$(find xacro)/xacro $(find jackal_ignition)/models/jackal.urdf.xacro" />
 
   <!-- load Jackal Gazebo model -->
   <node pkg="ros_ign_gazebo" type="create" name="$(anon jackal_create)" output="screen"
