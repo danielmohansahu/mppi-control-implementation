@@ -25,7 +25,7 @@ catkin_package(
 #############
 
 # Mark other files for installation (e.g. launch and bag files, etc.)
-install(DIRECTORY launch models
+install(DIRECTORY launch models scripts
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
