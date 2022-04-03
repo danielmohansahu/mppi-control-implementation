@@ -40,5 +40,8 @@ Some open source projects which were very helpful:
 
  - [fields-ignition](https://github.com/azazdeaz/fields-ignition)
  - [GaTech AutoRally](https://github.com/AutoRally/autorally)
+ - [Getting Started with Ignition Gazebo](https://cyaninfinite.com/getting-started-with-ignition-gazebo/)
+ - [ros_ign](https://github.com/ignitionrobotics/ros_ign/tree/noetic)
+ - [MPPI Implementation](https://github.com/bostoncleek/ROS-Turtlebot-Navigation/tree/master/controller)
 
 
