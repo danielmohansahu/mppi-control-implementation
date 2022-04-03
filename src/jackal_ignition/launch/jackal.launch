@@ -1,10 +1,23 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="namespace" default="jackal" />
+  <arg name="world" default="empty" doc="Gazebo world to spawn."/>
+
+  <!-- tell ignition where to find stuff -->
+  <env name="IGN_GAZEBO_SYSTEM_PLUGIN_PATH" value="$(optenv LD_LIBRARY_PATH)" />
+  <env name="IGN_GAZEBO_RESOURCE_PATH" value="$(optenv IGN_GAZEBO_RESOURCE_PATH):$(find jackal_description)/.." />
+
+  <!-- Spawn world -->
+  <include file="$(find ros_ign_gazebo)/launch/ign_gazebo.launch">
+    <arg name="ign_args" value="-r -v 3 $(arg world).sdf"/>
+  </include>
+
+  <!-- generate Jackal's URDF as a robot_description -->
+  <param name="$(arg namespace)/robot_description" command="$(find xacro)/xacro $(find jackal_description)/urdf/jackal.urdf.xacro" />
 
   <!-- load Jackal Gazebo model -->
-  <env name="IGN_GAZEBO_SYSTEM_PLUGIN_PATH" value="$(optenv LD_LIBRARY_PATH)" />
-  <node pkg="ros_ign_gazebo" type="ign_gazebo" name="ign_gazebo" output="screen" required="true" 
-        args="-r -v 3 diff_drive.sdf">
+  <node pkg="ros_ign_gazebo" type="create" name="$(anon jackal_create)" output="screen"
+        args="-world $(arg world) -param $(arg namespace)/robot_description -name spawned -allow-renaming true -z 1">
   </node>
 
   <!-- map Ignition topics to ROS topics -->
