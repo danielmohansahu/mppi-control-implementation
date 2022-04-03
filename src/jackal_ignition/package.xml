@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>jackal_ignition</name>
+  <version>0.1.0</version>
+  <description>The jackal_ignition package</description>
+
+  <maintainer email="danielmohansahu@todo.com">Daniel M. Sahu</maintainer>
+  <license>MIT</license>
+  <author email="danielmohansahu@todo.com">Daniel M. Sahu</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>jackal_description</exec_depend>
+  <exec_depend>ros_ign_gazebo</exec_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+  </export>
+</package>
