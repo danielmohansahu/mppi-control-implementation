@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(mppi_controller)
 
 set(CMAKE_CXX_STANDARD 17)
+add_compile_options(-Wall -Wextra -Werror)
 
 set(BUILD_DEPS
   roscpp
@@ -29,7 +30,12 @@ include_directories(
 )
 
 ## Declare a C++ executable
-add_executable(${PROJECT_NAME}_node src/mppi_controller_node.cpp src/mppi.cpp)
+add_executable(${PROJECT_NAME}_node
+  src/forward_model.cpp
+  src/mppi.cpp
+  src/mppi_controller_node.cpp
+  src/visualization.cpp
+ )
 
 ## Add cmake target dependencies of the executable
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
