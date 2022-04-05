@@ -34,13 +34,13 @@ class MPPI
   MPPI(const std::shared_ptr<ForwardModel> model, const Options& options = Options());
 
   // set target goal; this clears extant plans and stops planning
-  void setGoal(const geometry_msgs::PoseStamped goal);
+  void setGoal(const geometry_msgs::PoseStamped& goal);
 
   // clear current goal and stop planning
   void clear();
 
   // plan from the given pose, i.e. the current position
-  geometry_msgs::Twist plan(const geometry_msgs::PoseStamped pose);
+  geometry_msgs::Twist plan(const geometry_msgs::PoseStamped& pose);
 
  private:
 
