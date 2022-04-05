@@ -43,5 +43,7 @@ Some open source projects which were very helpful:
  - [Getting Started with Ignition Gazebo](https://cyaninfinite.com/getting-started-with-ignition-gazebo/)
  - [ros_ign](https://github.com/ignitionrobotics/ros_ign/tree/noetic)
  - [MPPI Implementation](https://github.com/bostoncleek/ROS-Turtlebot-Navigation/tree/master/controller)
+ - [Skid Steer Kimatics](https://mdpi-res.com/d_attachment/sensors/sensors-15-09681/article_deploy/sensors-15-09681-v2.pdf)
+ - [Skid Steer Friction Kinematics](https://www.joydeepb.com/Publications/icra2019_skid_steer.pdf)
 
 
