@@ -6,11 +6,25 @@
 // ROS
 #include <ros/ros.h>
 
-
 // custom
+#include <mppi_controller/forward_model.h>
 #include <mppi_controller/mppi.h>
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char ** argv)
+int main(int argc, char** argv)
 {
+  // start ROS node
+  ros::init(argc, argv, "mppi_controller_node");
+
+  // construct forward model
+  auto forward_model = std::make_shared<mppi::ForwardModel>();
+  ROS_INFO_NAMED("mppi_controller_node", "ForwardModel instantiated.");
+
+  // construct base controller
+  mppi::MPPI controller(forward_model);
+  ROS_INFO_NAMED("mppi_controller_node", "MPPI Controller instantiated.");
+
+  // spin until shutdown
+  ros::spin();
+
   return 0;
 };
