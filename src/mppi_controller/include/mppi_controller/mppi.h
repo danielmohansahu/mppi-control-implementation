@@ -15,6 +15,7 @@
 #include <geometry_msgs/Twist.h>
 
 // custom
+#include "types.h"
 #include "forward_model.h"
 
 namespace mppi
