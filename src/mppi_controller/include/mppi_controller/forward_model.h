@@ -25,7 +25,7 @@ struct ForwardModel
 {
   // nominal Jackal physical parameters
   std::atomic<float> wheel_radius {0.098};
-  std::atomic<float> wheel_seperation {0.262};
+  std::atomic<float> wheel_separation {0.262};
 
   // time-dependent coefficients
   //  defaults result in a simple friction-free kinematic model
