@@ -1,0 +1,57 @@
+cmake_minimum_required(VERSION 3.0.2)
+project(mppi_controller)
+
+set(CMAKE_CXX_STANDARD 14)
+
+set(BUILD_DEPS
+  roscpp
+)
+set(PKG_DEPS ${BUILD_DEPS})
+
+find_package(catkin REQUIRED ${BUILD_DEPS})
+
+###################################
+## catkin specific configuration ##
+###################################
+catkin_package(
+ INCLUDE_DIRS include
+ CATKIN_DEPENDS ${PKG_DEPS}
+)
+
+###########
+## Build ##
+###########
+
+include_directories(
+ include
+ ${catkin_INCLUDE_DIRS}
+)
+
+## Declare a C++ executable
+add_executable(${PROJECT_NAME}_node src/mppi_controller_node.cpp)
+
+## Add cmake target dependencies of the executable
+add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(${PROJECT_NAME}_node
+  ${catkin_LIBRARIES}
+)
+
+#############
+## Install ##
+#############
+
+## Mark executables for installation
+## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
+install(TARGETS ${PROJECT_NAME}_node
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+## Mark cpp header files for installation
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
+
