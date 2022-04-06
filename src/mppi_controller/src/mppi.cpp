@@ -27,20 +27,26 @@ void MPPI::setGoal(const geometry_msgs::PoseStamped& goal)
   // sanity checks
   assert(goal.header.frame_id == options_->frame_id && "Received unexpected frame ID for goal!");
 
+  // clear any existing goals
+  clear();
+
   // construct new goal
   Posef new_goal = Posef::Zero();
   new_goal(0,0) = goal.pose.position.x;
   new_goal(1,0) = goal.pose.position.y;
-  
-  // @TODO include heading!
-
+  new_goal(2,0) = yaw_from_quat(goal.pose.orientation);
   goal_ = new_goal;
+
+  // initialize control sequence
+  const size_t steps = std::round(options_->horizon / options_->dt);
+  optimal_control_ = Matrix::Zero(steps * CONTROL_DIM, options_->rollouts);
 }
 
 void MPPI::clear()
 {
   ROS_INFO_NAMED("MPPI", "Stopping planning.");
   goal_ = std::nullopt;
+  optimal_control_ = std::nullopt;
 }
 
 geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
@@ -72,7 +78,7 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
                  state.twist.twist.angular.z;
 
   // plan and update 
-  std::tie(optimal_control_, optimal_trajectory_) = evaluate(eigen_state);
+  optimal_control_ = evaluate(eigen_state);
 
   // update class variables
   // @TODO
@@ -135,7 +141,7 @@ float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
   return cumulative;
 }
 
-std::tuple<Matrix,Matrix> MPPI::evaluate(const Eigen::Ref<Statef> state) const
+Matrix MPPI::evaluate(const Eigen::Ref<Statef> state) const
 {
   // determine the next best trajectory from the given pose
 
@@ -168,12 +174,11 @@ std::tuple<Matrix,Matrix> MPPI::evaluate(const Eigen::Ref<Statef> state) const
 
   ROS_DEBUG("Found next trajectory.");
   Matrix command = commands.col(index);
-  Matrix trajectory = potentials.col(index);
 
   // publish debugging information
   visualize(debug_pub_, potentials, costs, index, options_->frame_id, ros::Time::now());
 
-  return {command, trajectory};
+  return command;
 }
 
 } // namespace mppi

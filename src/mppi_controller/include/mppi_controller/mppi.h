@@ -40,6 +40,7 @@ struct Options
   std::string frame_id {"jackal/odom"}; // planning frame
   float horizon {5.0};                  // planning horizon, seconds
   float dt {0.02};                      // timestep between planning iterations
+  float goal_radius {1.0};              // radius around goal to consider "achieved"
 
   // sampling parameters
   float std {0.25};             // standard deviation of sampling distribution
@@ -78,7 +79,7 @@ class MPPI
   float cost(const Eigen::Ref<Matrix> trajectory) const;
 
   // select the best next trajectory
-  std::tuple<Matrix,Matrix> evaluate(const Eigen::Ref<Statef> state) const;
+  Matrix evaluate(const Eigen::Ref<Statef> state) const;
 
   // forward model
   const std::shared_ptr<ForwardModel> model_;
