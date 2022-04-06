@@ -43,13 +43,48 @@ void MPPI::clear()
   goal_ = std::nullopt;
 }
 
-geometry_msgs::Twist MPPI::plan([[maybe_unused]] const nav_msgs::Odometry& state)
+geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
 {
-  ROS_INFO_NAMED("MPPI", "'plan' not implemented!!!");
+  // sanity checks
+  assert(state.header.frame_id == options_->frame_id && "Received unexpected frame_id in state.");
+
+  // initialize zero command
+  geometry_msgs::Twist cmd;
+
+  // if we don't have a goal command 0 velocity
+  if (!goal_)
+    return cmd;
+
+  // sanity check planning rate, and warn if we're going unexpectedly fast / slow
+  static ros::Time last_plan_call = ros::Time::now();
+  if (const auto delta = ros::Time::now() - last_plan_call; delta > ros::Duration(options_->dt * 1.1))
+    ROS_WARN_THROTTLE_NAMED(5, "MPPI", "Planning rate more than 10%% slower than expected.");
+  else if (delta < ros::Duration(options_->dt * 0.9))
+    ROS_WARN_THROTTLE_NAMED(5, "MPPI", "Planning rate more than 10%% faster than expected.");
+
+  // convert given ROS state into Eigen
+  Statef eigen_state;
+  eigen_state << state.pose.pose.position.x,
+                 state.pose.pose.position.y,
+                 yaw_from_quat(state.pose.pose.orientation),
+                 state.twist.twist.linear.x,
+                 state.twist.twist.linear.y,
+                 state.twist.twist.angular.z;
+
+  // plan and update 
+  std::tie(optimal_control_, optimal_trajectory_) = evaluate(eigen_state);
+
+  // update class variables
+  // @TODO
+  //
+  // convert latest command into a twist
+  // @TODO
+
+  ROS_INFO_NAMED("MPPI", "'plan' not fully implemented!!!");
   return geometry_msgs::Twist();
 }
 
-Matrix MPPI::sample()
+Matrix MPPI::sample() const
 {
   // stochastically generate a set of potential trajectories from the given pose
   const size_t steps = std::round(options_->horizon / options_->dt);
@@ -72,7 +107,7 @@ Matrix MPPI::sample()
   return commands;
 }
 
-float MPPI::cost(const Eigen::Ref<Matrix> trajectory)
+float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
 {
   // return the cost of the given trajectory
 
@@ -100,7 +135,7 @@ float MPPI::cost(const Eigen::Ref<Matrix> trajectory)
   return cumulative;
 }
 
-std::tuple<Matrix,Matrix> MPPI::evaluate(const Eigen::Ref<Statef> state)
+std::tuple<Matrix,Matrix> MPPI::evaluate(const Eigen::Ref<Statef> state) const
 {
   // determine the next best trajectory from the given pose
 

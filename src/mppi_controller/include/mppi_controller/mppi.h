@@ -26,6 +26,13 @@
 namespace mppi
 {
 
+// convenience method to get Yaw from Quaternion
+// https://stackoverflow.com/questions/5782658/extracting-yaw-from-a-quaternion
+static inline float yaw_from_quat(const geometry_msgs::Quaternion& q)
+{
+  return std::atan2(2.0 * (q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
+}
+
 // controller parameters
 struct Options
 {
@@ -65,13 +72,13 @@ class MPPI
  private:
 
   // generate a set of potential trajectories from the given pose
-  Matrix sample();
+  Matrix sample() const;
 
   // evaluate the cost of the given trajectory
-  float cost(const Eigen::Ref<Matrix> trajectory);
+  float cost(const Eigen::Ref<Matrix> trajectory) const;
 
   // select the best next trajectory
-  std::tuple<Matrix,Matrix> evaluate(const Eigen::Ref<Statef> state);
+  std::tuple<Matrix,Matrix> evaluate(const Eigen::Ref<Statef> state) const;
 
   // forward model
   const std::shared_ptr<ForwardModel> model_;
@@ -87,8 +94,8 @@ class MPPI
   std::optional<Matrix> optimal_trajectory_;
 
   // random number generation
-  std::default_random_engine random_number_generator_;
-  std::normal_distribution<float> random_distribution_;
+  mutable std::default_random_engine random_number_generator_;
+  mutable std::normal_distribution<float> random_distribution_;
 
   // debug publisher to visualize trajectories
   ros::Publisher debug_pub_;
