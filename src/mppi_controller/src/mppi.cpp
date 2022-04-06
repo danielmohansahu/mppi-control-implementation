@@ -39,12 +39,12 @@ void MPPI::setGoal(const geometry_msgs::PoseStamped& goal)
 
   // initialize control sequence
   const size_t steps = std::round(options_->horizon / options_->dt);
-  optimal_control_ = Matrix::Zero(steps * CONTROL_DIM, options_->rollouts);
+  optimal_control_ = Matrix::Zero(steps * CONTROL_DIM, 1);
 }
 
 void MPPI::clear()
 {
-  ROS_INFO_NAMED("MPPI", "Stopping planning.");
+  ROS_INFO_NAMED("MPPI", "Clearing any extant plans.");
   goal_ = std::nullopt;
   optimal_control_ = std::nullopt;
 }
@@ -54,12 +54,9 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
   // sanity checks
   assert(state.header.frame_id == options_->frame_id && "Received unexpected frame_id in state.");
 
-  // initialize zero command
-  geometry_msgs::Twist cmd;
-
   // if we don't have a goal command 0 velocity
   if (!goal_)
-    return cmd;
+    return geometry_msgs::Twist();
 
   // sanity check planning rate, and warn if we're going unexpectedly fast / slow
   static ros::Time last_plan_call = ros::Time::now();
@@ -80,14 +77,9 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
   // plan and update 
   optimal_control_ = evaluate(eigen_state);
 
-  // update class variables
-  // @TODO
-  //
   // convert latest command into a twist
-  // @TODO
-
-  ROS_INFO_NAMED("MPPI", "'plan' not fully implemented!!!");
-  return geometry_msgs::Twist();
+  const Controlf first_cmd = optimal_control_->block(0,0,CONTROL_DIM,1);
+  return model_->toMessage(first_cmd);
 }
 
 Matrix MPPI::sample() const

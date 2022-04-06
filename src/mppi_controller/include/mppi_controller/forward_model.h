@@ -8,6 +8,9 @@
 // STL
 #include <atomic>
 
+// ROS
+#include <geometry_msgs/Twist.h>
+
 // Eigen
 #include <eigen3/Eigen/Core>
 
@@ -41,6 +44,9 @@ struct ForwardModel
 
   // predict the output of the given control sequence
   Eigen::MatrixXf rollout(const Eigen::Ref<Statef> state, const Eigen::Ref<Matrix> commands) const;
+
+  // convert target wheel angular velocities into a twist message
+  geometry_msgs::Twist toMessage(const Controlf& cmd) const;
 };
 
 } // namespace mppi
