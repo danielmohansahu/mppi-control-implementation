@@ -13,7 +13,7 @@
 #include <random>
 
 // ROS
-#include <ros/console.h>
+#include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
@@ -21,6 +21,7 @@
 // custom
 #include "types.h"
 #include "forward_model.h"
+#include "visualization.h"
 
 namespace mppi
 {
@@ -48,8 +49,8 @@ class MPPI
  public:
 
   // construct new MPPI instance
-  MPPI(const std::shared_ptr<ForwardModel> model);
-  MPPI(const std::shared_ptr<ForwardModel> model, const std::shared_ptr<Options> options);
+  MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh);
+  MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh, const std::shared_ptr<Options> options);
 
   // set target goal; this clears extant plans and stops planning
   void setGoal(const geometry_msgs::PoseStamped& goal);
@@ -88,6 +89,9 @@ class MPPI
   // random number generation
   std::default_random_engine random_number_generator_;
   std::normal_distribution<float> random_distribution_;
+
+  // debug publisher to visualize trajectories
+  ros::Publisher debug_pub_;
 };
 
 } // namespace mppi

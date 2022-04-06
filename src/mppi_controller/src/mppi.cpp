@@ -8,14 +8,16 @@
 namespace mppi
 {
 
-MPPI::MPPI(const std::shared_ptr<ForwardModel> model)
+MPPI::MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh)
  : model_(model), options_(new Options()), random_distribution_(0.0, options_->std)
 {
+  debug_pub_ = nh.advertise<visualization_msgs::MarkerArray>("rollouts", 1);
 }
 
-MPPI::MPPI(const std::shared_ptr<ForwardModel> model, const std::shared_ptr<Options> options)
+MPPI::MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh, const std::shared_ptr<Options> options)
  : model_(model), options_(options), random_distribution_(0.0, options_->std)
 {
+  debug_pub_ = nh.advertise<visualization_msgs::MarkerArray>("rollouts", 1);
 }
 
 void MPPI::setGoal(const geometry_msgs::PoseStamped& goal)
@@ -108,15 +110,23 @@ std::tuple<Matrix,Matrix> MPPI::evaluate(const Eigen::Ref<Statef> state)
   // get expected state of each command
   Matrix potentials = model_->rollout(state, commands);
 
+  // track costs of each trajectory, for debugging
+  std::vector<float> costs;
+  costs.reserve(potentials.cols());
+
   // find the lowest cost trajectory of the bunch
   float best_cost = std::numeric_limits<float>::max();
   size_t index = std::numeric_limits<size_t>::max();
   for (auto j = 0; j != potentials.cols(); ++j)
-    if (float c = cost(potentials.col(j)); c < best_cost)
+  {
+    float c = cost(potentials.col(j));
+    if (c < best_cost)
     {
       best_cost = c;
       index = j;
     }
+    costs.push_back(c);
+  }
   
   // sanity check that we got something
   assert(best_cost < std::numeric_limits<float>::max() && "Failed to get a valid plan.");
@@ -124,6 +134,10 @@ std::tuple<Matrix,Matrix> MPPI::evaluate(const Eigen::Ref<Statef> state)
   ROS_DEBUG("Found next trajectory.");
   Matrix command = commands.col(index);
   Matrix trajectory = potentials.col(index);
+
+  // publish debugging information
+  visualize(debug_pub_, potentials, costs, index, options_->frame_id, ros::Time::now());
+
   return {command, trajectory};
 }
 
