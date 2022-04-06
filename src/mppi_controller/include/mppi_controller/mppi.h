@@ -39,7 +39,7 @@ struct Options
   // general parameters
   std::string frame_id {"jackal/odom"}; // planning frame
   float horizon {5.0};                  // planning horizon, seconds
-  float dt {0.02};                      // timestep between planning iterations
+  float dt {0.05};                      // timestep between planning iterations
   float goal_radius {1.0};              // radius around goal to consider "achieved"
 
   // sampling parameters

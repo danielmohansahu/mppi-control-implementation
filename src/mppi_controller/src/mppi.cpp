@@ -67,9 +67,10 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
   // sanity check planning rate, and warn if we're going unexpectedly fast / slow
   static ros::Time last_plan_call = ros::Time::now();
   if (const auto delta = ros::Time::now() - last_plan_call; delta > ros::Duration(options_->dt * 1.1))
-    ROS_WARN_THROTTLE_NAMED(5, "MPPI", "Planning rate more than 10%% slower than expected.");
+    ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt << " slower than expected.");
   else if (delta < ros::Duration(options_->dt * 0.9))
-    ROS_WARN_THROTTLE_NAMED(5, "MPPI", "Planning rate more than 10%% faster than expected.");
+    ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt << " faster than expected.");
+  last_plan_call = ros::Time::now();
 
   // convert given ROS state into Eigen
   Statef eigen_state;

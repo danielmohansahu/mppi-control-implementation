@@ -25,12 +25,13 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "mppi_controller_node");
   ros::NodeHandle nh;
 
-  // construct forward model
-  auto forward_model = std::make_shared<mppi::ForwardModel>();
-  ROS_INFO_NAMED("mppi_controller_node", "ForwardModel instantiated.");
-
   // construct Options struct
   auto options = std::make_shared<mppi::Options>();
+
+  // construct forward model
+  auto forward_model = std::make_shared<mppi::ForwardModel>();
+  forward_model->dt = options->dt;
+  ROS_INFO_NAMED("mppi_controller_node", "ForwardModel instantiated.");
 
   // construct base controller
   mppi::MPPI controller(forward_model, nh, options);
