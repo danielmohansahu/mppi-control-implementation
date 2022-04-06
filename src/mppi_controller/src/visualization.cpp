@@ -30,14 +30,6 @@ void visualize(const ros::Publisher& pub,
   static size_t sequence = 0;
   ++sequence;
 
-  // first delete previous marker
-  if (sequence != 0)
-  {
-    visualization_msgs::Marker eraser;
-    eraser.action = visualization_msgs::Marker::DELETEALL;
-    pub.publish(eraser);
-  }
-
   // get min, max costs to scale colors
   const float min_cost = costs[winner_idx]; // better be!
   const float max_cost = *std::max_element(costs.cbegin(), costs.cend());
@@ -69,13 +61,10 @@ void visualize(const ros::Publisher& pub,
     marker.header.seq = sequence; 
     marker.id = j;
     marker.pose.orientation.w = 1.0;
-    marker.scale.x = 1.0;
-    marker.scale.y = 1.0;
-    marker.scale.z = 1.0;
+    marker.scale.x = 0.05;
     marker.type = visualization_msgs::Marker::LINE_STRIP;
     marker.action = visualization_msgs::Marker::ADD;
     marker.lifetime = ros::Duration(0.25);
-    marker.frame_locked = true;
     marker.points.reserve(steps);
 
     // assign color based on cost
