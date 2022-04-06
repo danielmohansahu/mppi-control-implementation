@@ -46,6 +46,7 @@ int main(int argc, char** argv)
       1,
       [&current_goal, &controller, &mutex] (const geometry_msgs::PoseStamped::ConstPtr& msg) -> void
       {
+        ROS_DEBUG_NAMED("mppi_controller_node", "Updating goal.");
         std::lock_guard<std::mutex> lock(mutex);
         current_goal = *msg;
 
@@ -60,11 +61,19 @@ int main(int argc, char** argv)
       1,
       [&current_odometry, &mutex] (const nav_msgs::Odometry::ConstPtr& msg) -> void
       {
+        ROS_DEBUG_NAMED("mppi_controller_node", "Updating odometry.");
         std::lock_guard<std::mutex> lock(mutex);
+
+        // @TODO add odometry noise !
         current_odometry = *msg;
       });
 
+  // allow asynchronous callback execution
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+
   // plan until shutdown
+  ROS_INFO_NAMED("mppi_controller_node", "Beginning planning loop...");
   while (ros::ok())
   {
     ros::Time start_time = ros::Time::now();
@@ -96,6 +105,8 @@ int main(int argc, char** argv)
 
       // release lock and plan
       lock.release();
+
+      // @TODO add controller noise!
       twist_pub.publish(controller.plan(odom_copy));
     }
 
