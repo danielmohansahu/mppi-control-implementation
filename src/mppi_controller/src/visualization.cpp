@@ -58,7 +58,7 @@ void visualize(const ros::Publisher& pub,
     marker.header = pose.header;
     marker.header.seq = sequence; 
     marker.id = j;
-    marker.pose = pose.pose.pose;
+    marker.pose.orientation.w = 1.0;
     marker.scale.x = 0.01;
     marker.type = visualization_msgs::Marker::LINE_STRIP;
     marker.action = visualization_msgs::Marker::ADD;

@@ -3,10 +3,7 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /Rollouts1
-        - /Rollouts1/Status1
-        - /Goal1
+      Expanded: ~
       Splitter Ratio: 0.30000001192092896
     Tree Height: 565
   - Class: rviz/Selection
@@ -56,25 +53,85 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
-        Link Tree Style: ""
+        Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        chassis_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_fender_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        mid_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        navsat_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_fender_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rear_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: jackal/robot_description
       TF Prefix: jackal
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /jackal/rollouts
       Name: Rollouts
       Namespaces:
-        "": true
+        {}
       Queue Size: 2
       Value: true
     - Class: rviz/TF
