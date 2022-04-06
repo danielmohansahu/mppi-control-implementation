@@ -1,6 +1,8 @@
+<?xml version="1.0"?>
 <launch>
+  <arg name="namespace" default="jackal" />
 
-  <node name="mppi_controller" type="mppi_controller_node" pkg="mppi_controller"
+  <node ns="$(arg namespace)" name="mppi_controller" type="mppi_controller_node" pkg="mppi_controller"
         output="screen" required="true" />
 
 </launch>
