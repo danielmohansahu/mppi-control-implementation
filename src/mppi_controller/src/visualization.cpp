@@ -26,9 +26,23 @@ void visualize(const ros::Publisher& pub,
   assert(trajectories.rows() % STATE_DIM == 0);
   const size_t steps = trajectories.rows() / STATE_DIM;
 
+  // get sequence number
+  static size_t sequence = 0;
+  ++sequence;
+
+  // first delete previous marker
+  if (sequence != 0)
+  {
+    visualization_msgs::Marker eraser;
+    eraser.action = visualization_msgs::Marker::DELETEALL;
+    pub.publish(eraser);
+  }
+
   // get min, max costs to scale colors
   const float min_cost = costs[winner_idx]; // better be!
   const float max_cost = *std::max_element(costs.cbegin(), costs.cend());
+  assert(max_cost != min_cost && "Max and min cost are exactly the same...");
+
   auto color_scale = [min_cost, max_cost] (float cost) -> std_msgs::ColorRGBA
   {
     // normalize cost
@@ -37,6 +51,8 @@ void visualize(const ros::Publisher& pub,
     std_msgs::ColorRGBA msg;
     msg.r = norm;
     msg.g = 1 - norm;
+    // make the lowest cost path a bit more clear
+    msg.a = (cost == min_cost) ? 1.0 : 0.5;
     return msg;
   };
 
@@ -50,7 +66,12 @@ void visualize(const ros::Publisher& pub,
     visualization_msgs::Marker marker;
     marker.header.frame_id = frame_id;
     marker.header.stamp = start_time;
+    marker.header.seq = sequence; 
+    marker.id = j;
     marker.pose.orientation.w = 1.0;
+    marker.scale.x = 1.0;
+    marker.scale.y = 1.0;
+    marker.scale.z = 1.0;
     marker.type = visualization_msgs::Marker::LINE_STRIP;
     marker.action = visualization_msgs::Marker::ADD;
     marker.lifetime = ros::Duration(0.25);
