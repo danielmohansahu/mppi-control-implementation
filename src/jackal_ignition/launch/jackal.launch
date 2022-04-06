@@ -13,16 +13,19 @@
   </include>
 
   <!-- generate Jackal's URDF as a robot_description -->
-  <param name="$(arg namespace)/robot_description" textfile="$(find jackal_ignition)/models/jackal.sdf" />
+  <param name="$(arg namespace)/robot_description" command="$(find xacro)/xacro $(find jackal_ignition)/models/jackal.urdf.xacro" />
+
+  <!-- also include the SDF for Ignition to spawn from -->
+  <param name="$(arg namespace)/robot_description_sdf" textfile="$(find jackal_ignition)/models/jackal.sdf" />
 
   <!-- load Jackal Gazebo model -->
   <node pkg="ros_ign_gazebo" type="create" name="$(anon jackal_create)" output="screen"
-        args="-world $(arg world) -param $(arg namespace)/robot_description -name $(arg namespace) -allow-renaming true -z 1">
+        args="-world $(arg world) -param $(arg namespace)/robot_description_sdf -name $(arg namespace) -allow-renaming true -z 1">
   </node>
 
   <!-- map Ignition topics to ROS topics -->
   <node pkg="ros_ign_bridge" type="parameter_bridge" name="$(anon ros_ign_bridge)" output="screen"
-        args="/$(arg namespace)/cmd_vel@geometry_msgs/Twist@ignition.msgs.Twist /$(arg namespace)/odom@nav_msgs/Odometry@ignition.msgs.Odometry">
+        args="/$(arg namespace)/cmd_vel@geometry_msgs/Twist@ignition.msgs.Twist /$(arg namespace)/odom@nav_msgs/Odometry@ignition.msgs.Odometry /tf@tf2_msgs/TFMessage@ignition.msgs.Pose_V">
   </node>
 
 </launch>
