@@ -31,8 +31,7 @@ RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       python3-catkin-tools \
       ros-noetic-jackal-description \
-      ros-noetic-jackal-simulator \
-      ros-noetic-jackal-navigation \
+      ros-noetic-rviz \
     && rm -rf /var/apt/lists/*
 
 # default drop into a byobu shell
