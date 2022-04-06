@@ -6,7 +6,8 @@ Panels:
       Expanded:
         - /Rollouts1
         - /Rollouts1/Status1
-      Splitter Ratio: 0.35506004095077515
+        - /Goal1
+      Splitter Ratio: 0.30000001192092896
     Tree Height: 565
   - Class: rviz/Selection
     Name: Selection
@@ -55,7 +56,7 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
@@ -66,12 +67,86 @@ Visualization Manager:
       Robot Description: jackal/robot_description
       TF Prefix: jackal
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /jackal/rollouts
       Name: Rollouts
+      Namespaces:
+        "": true
+      Queue Size: 2
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        jackal/base_link:
+          Value: true
+        jackal/chassis_link:
+          Value: false
+        jackal/front_fender_link:
+          Value: false
+        jackal/front_left_wheel_link:
+          Value: false
+        jackal/front_mount:
+          Value: false
+        jackal/front_right_wheel_link:
+          Value: false
+        jackal/imu_link:
+          Value: false
+        jackal/mid_mount:
+          Value: false
+        jackal/navsat_link:
+          Value: false
+        jackal/odom:
+          Value: true
+        jackal/rear_fender_link:
+          Value: false
+        jackal/rear_left_wheel_link:
+          Value: false
+        jackal/rear_mount:
+          Value: false
+        jackal/rear_right_wheel_link:
+          Value: false
+      Marker Alpha: 1
+      Marker Scale: 3
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        jackal/odom:
+          jackal/base_link:
+            jackal/chassis_link:
+              jackal/front_fender_link:
+                {}
+              jackal/front_left_wheel_link:
+                {}
+              jackal/front_right_wheel_link:
+                {}
+              jackal/imu_link:
+                {}
+              jackal/mid_mount:
+                jackal/front_mount:
+                  {}
+                jackal/rear_mount:
+                  {}
+              jackal/navsat_link:
+                {}
+              jackal/rear_fender_link:
+                {}
+              jackal/rear_left_wheel_link:
+                {}
+              jackal/rear_right_wheel_link:
+                {}
+      Update Interval: 0
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: jackal/goal_marker
+      Name: Goal
       Namespaces:
         {}
       Queue Size: 100
@@ -104,7 +179,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 13.610654830932617
+      Distance: 5.749988555908203
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -112,17 +187,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.4446251690387726
-        Y: 1.1691148281097412
-        Z: -0.16970664262771606
+        X: 1.3466272354125977
+        Y: 0.439220666885376
+        Z: -0.14770883321762085
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.58039790391922
+      Pitch: 0.9403979778289795
       Target Frame: <Fixed Frame>
-      Yaw: 0.8853979110717773
+      Yaw: 0.44539815187454224
     Saved: ~
 Window Geometry:
   Displays:
@@ -130,7 +205,7 @@ Window Geometry:
   Height: 856
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000001fe000002befc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b000002be000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b4fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b000002b4000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005840000003efc0100000002fb0000000800540069006d00650100000000000005840000024400fffffffb0000000800540069006d0065010000000000000450000000000000000000000380000002be00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000026e000002befc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b000002be000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002b4fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b000002b4000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005840000003efc0100000002fb0000000800540069006d00650100000000000005840000024400fffffffb0000000800540069006d0065010000000000000450000000000000000000000310000002be00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -141,4 +216,4 @@ Window Geometry:
     collapsed: true
   Width: 1412
   X: 183
-  Y: 77
+  Y: 0
