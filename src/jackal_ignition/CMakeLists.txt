@@ -8,6 +8,7 @@ set(RUNTIME_DEPS
   jackal_description
   ros_ign_gazebo
   ros_ign_bridge
+  robot_state_publisher
 )
 
 ## Find catkin macros and libraries

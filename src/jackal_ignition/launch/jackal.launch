@@ -7,6 +7,9 @@
   <env name="IGN_GAZEBO_SYSTEM_PLUGIN_PATH" value="$(optenv LD_LIBRARY_PATH)" />
   <env name="IGN_GAZEBO_RESOURCE_PATH" value="$(optenv IGN_GAZEBO_RESOURCE_PATH):$(find jackal_description)/.." />
 
+  <!-- indicate we need to use simulation time -->
+  <param name="use_sim_time" value="true" />
+
   <!-- Spawn world -->
   <include file="$(find ros_ign_gazebo)/launch/ign_gazebo.launch">
     <arg name="ign_args" value="-r -v 3 $(arg world).sdf"/>
@@ -25,7 +28,18 @@
 
   <!-- map Ignition topics to ROS topics -->
   <node pkg="ros_ign_bridge" type="parameter_bridge" name="$(anon ros_ign_bridge)" output="screen"
-        args="/$(arg namespace)/cmd_vel@geometry_msgs/Twist@ignition.msgs.Twist /$(arg namespace)/odom@nav_msgs/Odometry@ignition.msgs.Odometry /tf@tf2_msgs/TFMessage@ignition.msgs.Pose_V">
+    args="/$(arg namespace)/cmd_vel@geometry_msgs/Twist@ignition.msgs.Twist /$(arg namespace)/odom@nav_msgs/Odometry@ignition.msgs.Odometry /tf@tf2_msgs/TFMessage@ignition.msgs.Pose_V /world/$(arg world)/clock@rosgraph_msgs/Clock@ignition.msgs.Clock">
+  </node>
+
+  <!-- special handling for ignition's unwillingness to double-publish the /clock topic -->
+  <node name="clock_relay" pkg="topic_tools" type="relay" required="true" args="/world/$(arg world)/clock /clock" />
+
+  <!-- broadcast joint information for TF -->
+  <node ns="$(arg namespace)" name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher"
+        output="screen" required="true" />
+  <node ns="$(arg namespace)" name="robot_state_publisher" type="robot_state_publisher" pkg="robot_state_publisher"
+    output="screen" required="true" >
+    <param name="tf_prefix" value="$(arg namespace)" />
   </node>
 
 </launch>
