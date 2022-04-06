@@ -11,6 +11,7 @@ set(BUILD_DEPS
 )
 set(PKG_DEPS
   jackal_ignition
+  rviz
   ${BUILD_DEPS}
 )
 

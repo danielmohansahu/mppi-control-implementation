@@ -16,6 +16,7 @@
   <depend>nav_msgs</depend>
 
   <exec_depend>jackal_ignition</exec_depend>
+  <exec_depend>rviz</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
