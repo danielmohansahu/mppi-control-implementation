@@ -9,13 +9,19 @@ namespace mppi
 {
 
 MPPI::MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh)
- : model_(model), options_(new Options()), random_distribution_(0.0, options_->std)
+ : model_(model),
+   options_(new Options()),
+   random_generator_(std::random_device{}()),
+   random_distribution_(0.0, options_->std)
 {
   debug_pub_ = nh.advertise<visualization_msgs::MarkerArray>("rollouts", 1);
 }
 
 MPPI::MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh, const std::shared_ptr<Options> options)
- : model_(model), options_(options), random_distribution_(0.0, options_->std)
+ : model_(model),
+   options_(options),
+   random_generator_(std::random_device{}()),
+   random_distribution_(0.0, options_->std)
 {
   debug_pub_ = nh.advertise<visualization_msgs::MarkerArray>("rollouts", 1);
 }
@@ -99,8 +105,8 @@ Matrix MPPI::sample() const
 
   // perturb the distributions
   // @TODO review the paper and do this more methodologically
-  commands.unaryExpr(
-    [this] (float x) -> float { return x + random_distribution_(random_number_generator_); });
+  commands += commands.unaryExpr(
+    [this] (float) -> float { return random_distribution_(random_generator_); });
 
   return commands;
 }
@@ -122,12 +128,14 @@ float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
     // get expected state variables
     const auto&& xy = trajectory.block(STATE_DIM * i, 0, 2, 1);
     const auto dx = trajectory(STATE_DIM * i + 3, 0);
+    const auto dtheta = trajectory(STATE_DIM * i + 4, 0);
 
     // add deviance from desired goal
     cumulative += options_->weight_dist * (goal_->block(0,0,2,1) - xy).norm();
 
     // add deviance from desired velocity
     cumulative += options_->weight_vel * std::abs(dx - options_->desired_vel);
+    cumulative += options_->weight_vel * std::abs(dtheta);
   }
 
   return cumulative;

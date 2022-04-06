@@ -95,7 +95,7 @@ class MPPI
   std::optional<Matrix> optimal_trajectory_;
 
   // random number generation
-  mutable std::default_random_engine random_number_generator_;
+  mutable std::mt19937 random_generator_;
   mutable std::normal_distribution<float> random_distribution_;
 
   // debug publisher to visualize trajectories
