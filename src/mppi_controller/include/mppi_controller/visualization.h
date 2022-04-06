@@ -11,6 +11,7 @@
 // ROS
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <nav_msgs/Odometry.h>
 
 // custom
 #include "types.h"
@@ -22,8 +23,7 @@ namespace mppi
 void visualize(const ros::Publisher& pub,
                const Eigen::Ref<Matrix> trajectories,
                const std::vector<float>& costs,
-               const size_t winner_idx,
-               const std::string& frame_id,
-               const ros::Time& start_time);
+               const nav_msgs::Odometry& pose,
+               const size_t winner_idx);
 
 } // namespace mppi

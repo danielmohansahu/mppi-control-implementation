@@ -13,9 +13,8 @@ namespace mppi
 void visualize(const ros::Publisher& pub,
                const Eigen::Ref<Matrix> trajectories,
                const std::vector<float>& costs,
-               const size_t winner_idx,
-               const std::string& frame_id,
-               const ros::Time& start_time)
+               const nav_msgs::Odometry& pose,
+               const size_t winner_idx)
 {
   // return early if nobody is listening
   if (pub.getNumSubscribers() == 0)
@@ -56,12 +55,11 @@ void visualize(const ros::Publisher& pub,
   {
     // initialize new marker
     visualization_msgs::Marker marker;
-    marker.header.frame_id = frame_id;
-    marker.header.stamp = start_time;
+    marker.header = pose.header;
     marker.header.seq = sequence; 
     marker.id = j;
-    marker.pose.orientation.w = 1.0;
-    marker.scale.x = 0.05;
+    marker.pose = pose.pose.pose;
+    marker.scale.x = 0.01;
     marker.type = visualization_msgs::Marker::LINE_STRIP;
     marker.action = visualization_msgs::Marker::ADD;
     marker.lifetime = ros::Duration(0.25);
@@ -75,7 +73,7 @@ void visualize(const ros::Publisher& pub,
     {
       geometry_msgs::Point point;
       point.x = trajectories(STATE_DIM * i, j);
-      point.x = trajectories(STATE_DIM * i + 1, j);
+      point.y = trajectories(STATE_DIM * i + 1, j);
       marker.points.push_back(point);
     }
 
