@@ -47,7 +47,7 @@ int main(int argc, char** argv)
       [&current_goal, &controller, &mutex] (const geometry_msgs::PoseStamped::ConstPtr& msg) -> void
       {
         ROS_DEBUG_NAMED("mppi_controller_node", "Updating goal.");
-        std::lock_guard<std::mutex> lock(mutex);
+        std::unique_lock<std::mutex> lock(mutex);
         current_goal = *msg;
 
         // update goal
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
       [&current_odometry, &mutex] (const nav_msgs::Odometry::ConstPtr& msg) -> void
       {
         ROS_DEBUG_NAMED("mppi_controller_node", "Updating odometry.");
-        std::lock_guard<std::mutex> lock(mutex);
+        std::unique_lock<std::mutex> lock(mutex);
 
         // @TODO add odometry noise !
         current_odometry = *msg;
@@ -103,10 +103,8 @@ int main(int argc, char** argv)
       // copy of current odometry
       nav_msgs::Odometry odom_copy = *current_odometry;
 
-      // release lock and plan
-      lock.release();
-
       // @TODO add controller noise!
+      // @TODO figure out how to release lock early
       twist_pub.publish(controller.plan(odom_copy));
     }
 
