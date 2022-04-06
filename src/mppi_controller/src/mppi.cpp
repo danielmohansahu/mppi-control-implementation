@@ -81,10 +81,16 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
                  state.twist.twist.angular.z;
 
   // plan and update 
-  optimal_control_ = evaluate(eigen_state);
+  Matrix optimal = evaluate(eigen_state);
+
+  // drop the first command, assuming it's been executed, and assign for next iteration
+  optimal_control_->block(0, 0, optimal_control_->rows() - CONTROL_DIM, 1) =
+    optimal.block(CONTROL_DIM, 0, optimal_control_->rows() - CONTROL_DIM, 1);
+  optimal_control_->block(optimal_control_->rows() - CONTROL_DIM - 1, 0, CONTROL_DIM, 1) = 
+    Matrix::Zero(CONTROL_DIM, 1);
 
   // convert latest command into a twist
-  const Controlf first_cmd = optimal_control_->block(0,0,CONTROL_DIM,1);
+  const Controlf first_cmd = optimal.block(0,0,CONTROL_DIM,1);
   return model_->toMessage(first_cmd);
 }
 
