@@ -7,10 +7,15 @@ add_compile_options(-Wall -Wextra -Werror)
 set(BUILD_DEPS
   roscpp
   geometry_msgs
+  nav_msgs
 )
-set(PKG_DEPS ${BUILD_DEPS})
+set(PKG_DEPS
+  jackal_ignition
+  ${BUILD_DEPS}
+)
 
 find_package(catkin REQUIRED ${BUILD_DEPS})
+find_package(Eigen3 REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -18,6 +23,7 @@ find_package(catkin REQUIRED ${BUILD_DEPS})
 catkin_package(
  INCLUDE_DIRS include
  CATKIN_DEPENDS ${PKG_DEPS}
+ DEPENDS EIGEN3
 )
 
 ###########
@@ -27,6 +33,7 @@ catkin_package(
 include_directories(
  include
  ${catkin_INCLUDE_DIRS}
+ ${EIGEN3_INCLUDE_DIRS}
 )
 
 ## Declare a C++ executable
@@ -43,6 +50,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
 )
 
 #############
