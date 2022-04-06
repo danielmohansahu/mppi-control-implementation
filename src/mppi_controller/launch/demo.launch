@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!-- launch simulation-based demonstration of MPPI controller -->
+<launch>
+  <arg name="namespace" default="jackal" />
+  <arg name="world" default="empty" doc="Gazebo world to spawn."/>
+
+  <!-- include MPPI controller launch -->
+  <include file="$(find mppi_controller)/launch/mppi_controller.launch" >
+    <arg name="namespace" value="$(arg namespace) />
+  </include>
+
+  <!-- include ignition simulation -->
+  <include file="$(find jackal_ignition)/launch/jackal.launch" >
+    <arg name="namespace" value="$(arg namespace) />
+    <arg name="world" value="$(arg world)" />
+  </include>
+
+</launch>
