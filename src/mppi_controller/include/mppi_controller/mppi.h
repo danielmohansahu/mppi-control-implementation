@@ -6,14 +6,17 @@
 #pragma once
 
 // STL
+#include <tuple>
 #include <optional>
 #include <memory>
 #include <limits>
+#include <random>
 
 // ROS
 #include <ros/console.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <nav_msgs/Odometry.h>
 
 // custom
 #include "types.h"
@@ -31,7 +34,8 @@ struct Options
   float dt {0.02};                      // timestep between planning iterations
 
   // sampling parameters
-  float std {0.25}; // standard deviation of sampling distribution
+  float std {0.25};             // standard deviation of sampling distribution
+  unsigned int rollouts {100};  // number of rollouts to evaluate
 
   // cost parameters
   float weight_dist {1.0};  // penalize euclidean distance
@@ -55,18 +59,18 @@ class MPPI
 
   // plan from the given pose, i.e. the current position
   //  we expect this to be called at the control loop rate, e.g. 50Hz
-  geometry_msgs::Twist plan(const geometry_msgs::PoseStamped& pose);
+  geometry_msgs::Twist plan(const nav_msgs::Odometry& state);
 
  private:
 
   // generate a set of potential trajectories from the given pose
-  Matrix sample(const Eigen::Ref<Posef> pose);
+  Matrix sample();
 
   // evaluate the cost of the given trajectory
   float cost(const Eigen::Ref<Matrix> trajectory);
 
   // select the best next trajectory
-  Matrix evaluate(const Eigen::Ref<Posef> pose);
+  std::tuple<Matrix,Matrix> evaluate(const Eigen::Ref<Statef> state);
 
   // forward model
   const std::shared_ptr<ForwardModel> model_;
@@ -76,6 +80,14 @@ class MPPI
 
   // current goal
   std::optional<Posef> goal_;
+
+  // current control sequence and corresponding expected trajectory
+  std::optional<Matrix> optimal_control_;
+  std::optional<Matrix> optimal_trajectory_;
+
+  // random number generation
+  std::default_random_engine random_number_generator_;
+  std::normal_distribution<float> random_distribution_;
 };
 
 } // namespace mppi
