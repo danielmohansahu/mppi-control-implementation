@@ -43,7 +43,7 @@ struct Options
   float goal_radius {1.0};              // radius around goal to consider "achieved"
 
   // sampling parameters
-  float std {0.25};             // standard deviation of sampling distribution
+  float std {2.0};             // standard deviation of sampling distribution
   unsigned int rollouts {100};  // number of rollouts to evaluate
 
   // cost parameters
@@ -79,7 +79,7 @@ class MPPI
   float cost(const Eigen::Ref<Matrix> trajectory) const;
 
   // select the best next trajectory
-  Matrix evaluate(const Eigen::Ref<Statef> state) const;
+  Matrix evaluate(const Eigen::Ref<Statef> state, const nav_msgs::Odometry& pose) const;
 
   // forward model
   const std::shared_ptr<ForwardModel> model_;

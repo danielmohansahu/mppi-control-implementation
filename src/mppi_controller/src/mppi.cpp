@@ -81,7 +81,7 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
                  state.twist.twist.angular.z;
 
   // plan and update 
-  Matrix optimal = evaluate(eigen_state);
+  Matrix optimal = evaluate(eigen_state, state);
 
   // drop the first command, assuming it's been executed, and assign for next iteration
   optimal_control_->block(0, 0, optimal_control_->rows() - CONTROL_DIM, 1) =
@@ -147,7 +147,7 @@ float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
   return cumulative;
 }
 
-Matrix MPPI::evaluate(const Eigen::Ref<Statef> state) const
+Matrix MPPI::evaluate(const Eigen::Ref<Statef> state, const nav_msgs::Odometry& pose) const
 {
   // determine the next best trajectory from the given pose
 
@@ -182,7 +182,7 @@ Matrix MPPI::evaluate(const Eigen::Ref<Statef> state) const
   Matrix command = commands.col(index);
 
   // publish debugging information
-  visualize(debug_pub_, potentials, costs, index, options_->frame_id, ros::Time::now());
+  visualize(debug_pub_, potentials, costs, pose, index);
 
   return command;
 }
