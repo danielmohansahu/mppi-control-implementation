@@ -25,13 +25,13 @@ Eigen::MatrixXf ForwardModel::rollout(const Eigen::Ref<Statef> state,
   const size_t steps = commands.rows() / CONTROL_DIM;
   const size_t rollouts = commands.cols();
 
-  // construct mapping matrix from commanded wheel velocities -> velocities
+  // construct mapping matrix from commanded angular wheel velocities -> Twist velocities
   //  https://www.joydeepb.com/Publications/icra2019_skid_steer.pdf
   //  Equation #8
   Matrix velocity_map = Matrix::Zero(VEL_DIM, CONTROL_DIM);
   velocity_map << (wheel_separation * (1 - slip_left) / 2), (wheel_separation * (1 - slip_right) / 2),
                   (icr * (1 - slip_left)), (icr * (1 - slip_right)),
-                  (slip_left - 1), (1 - slip_left);
+                  (slip_left - 1), (1 - slip_right);
   velocity_map *= wheel_radius / wheel_separation;
 
   // initialize results; it's 1 longer than the command sequence to account for the initial state
@@ -48,12 +48,16 @@ Eigen::MatrixXf ForwardModel::rollout(const Eigen::Ref<Statef> state,
       const auto&& command = commands.block(CONTROL_DIM * i, j, CONTROL_DIM, 1);
 
       // calculate velocities from forward model
-      auto&& velocities = trajectories.block(STATE_DIM * (i + 1) + VEL_DIM, j, VEL_DIM, 1);
-      velocities = velocity_map * command;
+      auto&& vel = trajectories.block(STATE_DIM * (i + 1) + POS_DIM, j, VEL_DIM, 1);
+      vel = velocity_map * command;
       
       // integrate velocities to get positions
-      const auto&& prev_pos = trajectories.block(STATE_DIM * i, j, POS_DIM, 1);
-      trajectories.block(STATE_DIM * (i + 1), j, POS_DIM, 1) = prev_pos + velocities * dt;
+      const auto&& pos = trajectories.block(STATE_DIM * i, j, POS_DIM, 1);  // previous step's position
+      trajectories(STATE_DIM * (i + 1), j) =
+        pos(0,0) + vel(0,0) * std::cos(pos(2,0)) * dt + vel(1,0) * std::sin(pos(2,0)) * dt;
+      trajectories(STATE_DIM * (i + 1) + 1, j) =
+        pos(1,0) + vel(1,0) * std::cos(pos(2,0)) * dt + vel(0,0) * std::sin(pos(2,0)) * dt;
+      trajectories(STATE_DIM * (i + 1) + 2, j) = pos(2,0) + vel(2,0) * dt;
     }
 
   // return expected trajectories

@@ -32,7 +32,7 @@ struct ForwardModel
 
   // time-dependent coefficients
   //  defaults result in a simple friction-free kinematic model
-  std::atomic<float> icr {1.0};
+  std::atomic<float> icr {0.0};
   std::atomic<float> slip_left {0.0};
   std::atomic<float> slip_right {0.0};
 
