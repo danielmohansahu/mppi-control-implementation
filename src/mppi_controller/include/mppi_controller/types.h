@@ -22,6 +22,7 @@ constexpr size_t CONTROL_DIM = 2;
 
 // Array shorthands
 using Statef    = Eigen::Matrix<float, STATE_DIM, 1>;
+using Posef     = Eigen::Matrix<float, POS_DIM, 1>;
 using Controlf  = Eigen::Matrix<float, CONTROL_DIM, 1>;
 
 // convenience typedefs of common types
