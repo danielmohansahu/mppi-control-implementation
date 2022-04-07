@@ -170,6 +170,9 @@ Matrix MPPI::evaluate(const Eigen::Ref<Statef> state, const nav_msgs::Odometry& 
   // generate potential command swaths
   Matrix commands = sample();
 
+  // constrain commands
+  model_->constrain(commands);
+
   // get expected state of each command
   Matrix potentials = model_->rollout(state, commands);
 

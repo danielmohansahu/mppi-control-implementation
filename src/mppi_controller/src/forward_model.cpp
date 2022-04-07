@@ -13,6 +13,12 @@ geometry_msgs::Twist ForwardModel::toMessage(const Controlf& cmd) const
   return msg;
 }
 
+void ForwardModel::constrain(Eigen::Ref<Matrix> commands) const
+{
+  // apply control constraints to the desired commands
+  commands = commands.cwiseMin(max_omega).cwiseMax(min_omega);
+}
+
 Eigen::MatrixXf ForwardModel::rollout(const Eigen::Ref<Statef> state,
                                       const Eigen::Ref<Matrix> commands) const
 {

@@ -37,7 +37,13 @@ struct ForwardModel
   std::atomic<float> slip_right {0.0};
 
   // simulate control delay
+  //  @TODO; currently unused
   std::atomic<float> delay {0.0};
+
+  // platform command constraints
+  //  calculated from nominal max velocity (2m/s) / wheel radius (~0.1m)
+  std::atomic<float> max_omega {20.0};
+  std::atomic<float> min_omega {-20.0};
 
   // simulation specific parameters
   std::atomic<float> dt {0.02};
@@ -47,6 +53,9 @@ struct ForwardModel
 
   // convert target wheel angular velocities into a twist message
   geometry_msgs::Twist toMessage(const Controlf& cmd) const;
+
+  // apply control constraints to the given command set
+  void constrain(Eigen::Ref<Matrix> commands) const;
 };
 
 } // namespace mppi
