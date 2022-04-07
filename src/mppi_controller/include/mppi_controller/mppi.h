@@ -47,9 +47,10 @@ struct Options
   unsigned int rollouts {100};  // number of rollouts to evaluate
 
   // cost parameters
-  float weight_dist {1.0};  // penalize euclidean distance
-  float weight_vel {1.0};   // penalize deviance from desired velocity
-  float desired_vel {2.0};  // desired velocity (m/s)
+  float weight_dist {1.0};    // penalize euclidean distance
+  float weight_vel {1.0};     // penalize deviance from desired velocity
+  float desired_vel {2.0};    // desired velocity (m/s)
+  float weight_omega {100.0}; // penalize angular velocity
 };
 
 class MPPI

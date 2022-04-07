@@ -66,10 +66,20 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
 
   // sanity check planning rate, and warn if we're going unexpectedly fast / slow
   static ros::Time last_plan_call = ros::Time::now();
-  if (const auto delta = ros::Time::now() - last_plan_call; delta > ros::Duration(options_->dt * 1.1))
-    ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt << " slower than expected.");
+  static size_t issues = 0;
+  if (const auto delta = ros::Time::now() - last_plan_call; delta > ros::Duration(options_->dt * 1.25))
+  {
+    ++issues;
+    ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt
+                                              << " slower than expected. " << issues << " times so far.");
+  }
   else if (delta < ros::Duration(options_->dt * 0.9))
-    ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt << " faster than expected.");
+  {
+    ++issues;
+    ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt
+                                              << " faster than expected. " << issues << " times so far.");
+  }
+  // update time for next loop
   last_plan_call = ros::Time::now();
 
   // convert given ROS state into Eigen
@@ -115,6 +125,9 @@ Matrix MPPI::sample() const
   commands += commands.unaryExpr(
     [this] (float) -> float { return random_distribution_(random_generator_); });
 
+  // ensure that one rollout is the same as before, if it were optimal
+  commands.col(0) = *optimal_control_;
+
   return commands;
 }
 
@@ -142,7 +155,9 @@ float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
 
     // add deviance from desired velocity
     cumulative += options_->weight_vel * std::abs(dx - options_->desired_vel);
-    cumulative += options_->weight_vel * std::abs(dtheta);
+
+    // penalize rotation
+    cumulative += options_->weight_omega * std::abs(dtheta);
   }
 
   return cumulative;
