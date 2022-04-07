@@ -23,9 +23,11 @@ constexpr size_t CONTROL_DIM = 2;
 // Array shorthands
 using Statef    = Eigen::Matrix<float, STATE_DIM, 1>;
 using Posef     = Eigen::Matrix<float, POS_DIM, 1>;
+using Velf      = Eigen::Matrix<float, VEL_DIM, 1>;
 using Controlf  = Eigen::Matrix<float, CONTROL_DIM, 1>;
 
 // convenience typedefs of common types
 using Matrix    = Eigen::MatrixXf;
+using VelMatrix = Eigen::Matrix<float, VEL_DIM, CONTROL_DIM>;
 
 } // namespace mppi

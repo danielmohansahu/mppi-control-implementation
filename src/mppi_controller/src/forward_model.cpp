@@ -5,11 +5,13 @@ namespace mppi
 
 geometry_msgs::Twist ForwardModel::toMessage(const Controlf& cmd) const
 {
+  // get expected velocities from this command
+  Velf vels = get_velocity_map() * cmd;
+
   // convert wheel velocities into Twist commands
-  //  simplified frictionless model
   geometry_msgs::Twist msg;
-  msg.linear.x = wheel_radius * ( cmd(0,0) + cmd(1,0) ) / 2.0;
-  msg.angular.z = wheel_radius * ( -cmd(0,0) + cmd(1,0) ) / wheel_separation;
+  msg.linear.x = vels(0,0);
+  msg.angular.z = vels(2,0);
   return msg;
 }
 
@@ -17,6 +19,20 @@ void ForwardModel::constrain(Eigen::Ref<Matrix> commands) const
 {
   // apply control constraints to the desired commands
   commands = commands.cwiseMin(max_omega).cwiseMax(min_omega);
+}
+
+VelMatrix ForwardModel::get_velocity_map() const
+{
+  // construct mapping matrix from commanded angular wheel velocities -> Twist velocities
+
+  //  https://www.joydeepb.com/Publications/icra2019_skid_steer.pdf
+  //  Equation #8
+  VelMatrix velocity_map = VelMatrix::Zero();
+  velocity_map << (wheel_separation * (1 - slip_left) / 2), (wheel_separation * (1 - slip_right) / 2),
+                  (icr * (1 - slip_left)), (icr * (1 - slip_right)),
+                  (slip_left - 1), (1 - slip_right);
+  velocity_map *= wheel_radius / wheel_separation;
+  return velocity_map;
 }
 
 Eigen::MatrixXf ForwardModel::rollout(const Eigen::Ref<Statef> state,
@@ -32,13 +48,7 @@ Eigen::MatrixXf ForwardModel::rollout(const Eigen::Ref<Statef> state,
   const size_t rollouts = commands.cols();
 
   // construct mapping matrix from commanded angular wheel velocities -> Twist velocities
-  //  https://www.joydeepb.com/Publications/icra2019_skid_steer.pdf
-  //  Equation #8
-  Matrix velocity_map = Matrix::Zero(VEL_DIM, CONTROL_DIM);
-  velocity_map << (wheel_separation * (1 - slip_left) / 2), (wheel_separation * (1 - slip_right) / 2),
-                  (icr * (1 - slip_left)), (icr * (1 - slip_right)),
-                  (slip_left - 1), (1 - slip_right);
-  velocity_map *= wheel_radius / wheel_separation;
+  VelMatrix velocity_map = get_velocity_map();
 
   // initialize results; it's 1 longer than the command sequence to account for the initial state
   Matrix trajectories = Matrix::Zero(STATE_DIM * (steps + 1), rollouts);
