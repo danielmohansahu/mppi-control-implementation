@@ -10,7 +10,7 @@
 // ROS
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
 
 // custom
 #include <mppi_controller/forward_model.h>
@@ -39,6 +39,7 @@ int main(int argc, char** argv)
 
   // set up twist publisher to send command velocities to robot
   ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+  ros::Publisher twist_debug_pub = nh.advertise<geometry_msgs::TwistStamped>("cmd_vel_debug", 1);
 
   // set up subscriber to capture new goals
   std::optional<geometry_msgs::PoseStamped> current_goal;
@@ -106,7 +107,20 @@ int main(int argc, char** argv)
 
       // @TODO add controller noise!
       // @TODO figure out how to release lock early
-      twist_pub.publish(controller.plan(odom_copy));
+      geometry_msgs::Twist twist = controller.plan(odom_copy);
+
+      // publish command
+      twist_pub.publish(twist);
+
+      // if anyone's listening, publish debug Twist
+      if (twist_debug_pub.getNumSubscribers() != 0)
+      {
+        geometry_msgs::TwistStamped msg;
+        msg.twist = twist;
+        msg.header.frame_id = options->frame_id;
+        msg.header.stamp = ros::Time::now();
+        twist_debug_pub.publish(msg);
+      }
     }
 
     if (ros::Duration delta = (ros::Time::now() - start_time); delta >= ros::Duration(options->dt))
