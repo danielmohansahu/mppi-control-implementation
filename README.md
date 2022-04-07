@@ -20,8 +20,15 @@ xhost +si:localuser:root
 Once within the Docker container one can launch our demonstration simulation via:
 
 ```bash
-@TODO!
+# build project
+catkin build -DCMAKE_BUILD_TYPE=Release
+source devel/setup.bash
+
+# launch demo
+roslaunch mppi_controller demo.launch
 ```
+
+The default demo will spawn a Jackal in an Ignition world with the MPPI controller running.
 
 ## Theory
 
