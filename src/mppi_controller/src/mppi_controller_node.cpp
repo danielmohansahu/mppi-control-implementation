@@ -16,6 +16,20 @@
 #include <mppi_controller/forward_model.h>
 #include <mppi_controller/mppi.h>
 
+// convenience typedefs
+using geometry_msgs::Twist;
+using geometry_msgs::TwistStamped;
+using geometry_msgs::PoseStamped;
+using nav_msgs::Odometry;
+
+// check if we're within our goal radius
+inline bool achieved(const PoseStamped& goal, const Odometry& odom, const float radius)
+{
+  float dist = std::pow(goal.pose.position.x - odom.pose.pose.position.x, 2.0)
+                       + std::pow(goal.pose.position.y - odom.pose.pose.position.y, 2.0);
+  return dist <= std::pow(radius, 2.0);
+}
+
 int main(int argc, char** argv)
 {
   // mutex to guard concurrent read / write access
@@ -38,15 +52,15 @@ int main(int argc, char** argv)
   ROS_INFO_NAMED("mppi_controller_node", "MPPI Controller instantiated.");
 
   // set up twist publisher to send command velocities to robot
-  ros::Publisher twist_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-  ros::Publisher twist_debug_pub = nh.advertise<geometry_msgs::TwistStamped>("cmd_vel_debug", 1);
+  ros::Publisher twist_pub = nh.advertise<Twist>("cmd_vel", 1);
+  ros::Publisher twist_debug_pub = nh.advertise<TwistStamped>("cmd_vel_debug", 1);
 
   // set up subscriber to capture new goals
-  std::optional<geometry_msgs::PoseStamped> current_goal;
-  ros::Subscriber goal_sub = nh.subscribe<geometry_msgs::PoseStamped>(
+  std::optional<PoseStamped> current_goal;
+  ros::Subscriber goal_sub = nh.subscribe<PoseStamped>(
       "goal",
       1,
-      [&current_goal, &controller, &mutex] (const geometry_msgs::PoseStamped::ConstPtr& msg) -> void
+      [&current_goal, &controller, &mutex] (const PoseStamped::ConstPtr& msg) -> void
       {
         ROS_DEBUG_NAMED("mppi_controller_node", "Updating goal.");
         std::unique_lock<std::mutex> lock(mutex);
@@ -57,11 +71,11 @@ int main(int argc, char** argv)
       });
 
   // set up subscriber to capture robot odometry
-  std::optional<nav_msgs::Odometry> current_odometry;
-  ros::Subscriber odom_sub = nh.subscribe<nav_msgs::Odometry>(
+  std::optional<Odometry> current_odometry;
+  ros::Subscriber odom_sub = nh.subscribe<Odometry>(
       "odom",
       1,
-      [&current_odometry, &mutex] (const nav_msgs::Odometry::ConstPtr& msg) -> void
+      [&current_odometry, &mutex] (const Odometry::ConstPtr& msg) -> void
       {
         ROS_DEBUG_NAMED("mppi_controller_node", "Updating odometry.");
         std::unique_lock<std::mutex> lock(mutex);
@@ -88,26 +102,21 @@ int main(int argc, char** argv)
     else
     {
       // check if we've achieved our goal
-      float dist_squared = std::pow(current_goal->pose.position.x - current_odometry->pose.pose.position.x, 2.0)
-                           + std::pow(current_goal->pose.position.y - current_odometry->pose.pose.position.y , 2.0);
-      if (dist_squared <= options->goal_radius)
+      if (achieved(*current_goal, *current_odometry, options->goal_radius))
       {
         ROS_INFO_NAMED("mppi_controller_node", "Goal achieved!");
         current_goal = std::nullopt;
         controller.clear();
 
         // send stop command
-        twist_pub.publish(geometry_msgs::Twist());
+        twist_pub.publish(Twist());
         continue;
       }
 
       // if we've made it this far we want to continue planning
-      // copy of current odometry
-      nav_msgs::Odometry odom_copy = *current_odometry;
-
       // @TODO add controller noise!
       // @TODO figure out how to release lock early
-      geometry_msgs::Twist twist = controller.plan(odom_copy);
+      Twist twist = controller.plan(*current_odometry);
 
       // publish command
       twist_pub.publish(twist);
@@ -115,7 +124,7 @@ int main(int argc, char** argv)
       // if anyone's listening, publish debug Twist
       if (twist_debug_pub.getNumSubscribers() != 0)
       {
-        geometry_msgs::TwistStamped msg;
+        TwistStamped msg;
         msg.twist = twist;
         msg.header.frame_id = options->frame_id;
         msg.header.stamp = ros::Time::now();
