@@ -44,6 +44,7 @@ void MPPI::clear()
   ROS_INFO_NAMED("MPPI", "Clearing any extant plans.");
   goal_ = std::nullopt;
   optimal_control_ = std::nullopt;
+  last_plan_call_ = std::nullopt;
 }
 
 geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
@@ -56,22 +57,26 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
     return geometry_msgs::Twist();
 
   // sanity check planning rate, and warn if we're going unexpectedly fast / slow
-  static ros::Time last_plan_call = ros::Time::now();
   static size_t issues = 0;
-  if (const auto delta = ros::Time::now() - last_plan_call; delta > ros::Duration(options_->dt * 1.25))
+  if (!last_plan_call_)
+    last_plan_call_ = ros::Time::now();
+  else
   {
-    ++issues;
-    ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt
-                                              << " slower than expected. " << issues << " times so far.");
+    if (const auto delta = ros::Time::now() - *last_plan_call_; delta > ros::Duration(options_->dt * 1.1))
+    {
+      ++issues;
+      ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt
+                                                << " slower than expected. " << issues << " times so far.");
+    }
+    else if (delta < ros::Duration(options_->dt * 0.9))
+    {
+      ++issues;
+      ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt
+                                                << " faster than expected. " << issues << " times so far.");
+    }
+    // update time for next loop
+    last_plan_call_ = ros::Time::now();
   }
-  else if (delta < ros::Duration(options_->dt * 0.9))
-  {
-    ++issues;
-    ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt
-                                              << " faster than expected. " << issues << " times so far.");
-  }
-  // update time for next loop
-  last_plan_call = ros::Time::now();
 
   // convert given ROS state into Eigen
   Statef eigen_state;

@@ -94,6 +94,9 @@ class MPPI
 
   // debug publisher to visualize trajectories
   ros::Publisher debug_pub_;
+
+  // timing analysis
+  std::optional<ros::Time> last_plan_call_;
 };
 
 } // namespace mppi
