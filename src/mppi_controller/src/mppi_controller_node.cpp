@@ -30,6 +30,20 @@ inline bool achieved(const PoseStamped& goal, const Odometry& odom, const float 
   return dist <= std::pow(radius, 2.0);
 }
 
+// simulate odometry noise
+Odometry add_noise(const Odometry& odom)
+{
+  // @TODO!
+  return odom;
+}
+
+// simulated controller noise
+Twist add_noise(const Twist& cmd)
+{
+  // @TODO
+  return cmd;
+}
+
 int main(int argc, char** argv)
 {
   // mutex to guard concurrent read / write access
@@ -65,8 +79,6 @@ int main(int argc, char** argv)
         ROS_DEBUG_NAMED("mppi_controller_node", "Updating goal.");
         std::unique_lock<std::mutex> lock(mutex);
         current_goal = *msg;
-
-        // update goal
         controller.setGoal(*msg);
       });
 
@@ -79,8 +91,6 @@ int main(int argc, char** argv)
       {
         ROS_DEBUG_NAMED("mppi_controller_node", "Updating odometry.");
         std::unique_lock<std::mutex> lock(mutex);
-
-        // @TODO add odometry noise !
         current_odometry = *msg;
       });
 
@@ -114,9 +124,8 @@ int main(int argc, char** argv)
       }
 
       // if we've made it this far we want to continue planning
-      // @TODO add controller noise!
       // @TODO figure out how to release lock early
-      Twist twist = controller.plan(*current_odometry);
+      Twist twist = add_noise(controller.plan(add_noise(*current_odometry)));
 
       // publish command
       twist_pub.publish(twist);
@@ -137,6 +146,7 @@ int main(int argc, char** argv)
       ROS_WARN_THROTTLE_NAMED(5, "mppi_controller_node", "Planning takes longer than required loop rate!");
     else
       // sleep for remainder of loop
+      // @TODO use something better than ros::Time for this?
       (ros::Duration(options->dt) - delta).sleep();
   }
 
