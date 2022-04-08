@@ -1,0 +1,18 @@
+### single waypoint action definition
+
+# goal definition
+geometry_msgs/PoseStamped pose  # desired location
+float64 radius                  # radius within which we must be
+float64 velocity                # desired linear velocity (m/s)
+
+---
+
+# result definition
+bool success
+
+---
+
+# feedback definition
+nav_msgs/Odometry odom      # current state estimate
+geometry_msgs/Twist cmd_vel # current commanded velocity
+

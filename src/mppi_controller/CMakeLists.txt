@@ -9,13 +9,28 @@ set(BUILD_DEPS
   geometry_msgs
   nav_msgs
   dynamic_reconfigure
+  actionlib_msgs
 )
 set(PKG_DEPS
+  message_generation
   ${BUILD_DEPS}
 )
 
 find_package(catkin REQUIRED ${BUILD_DEPS})
 find_package(Eigen3 REQUIRED)
+
+
+############################
+## action file generation ##
+############################
+add_action_files(
+  DIRECTORY action
+  FILES Waypoint.action
+)
+
+generate_messages(
+  DEPENDENCIES actionlib_msgs nav_msgs geometry_msgs std_msgs
+)
 
 ####################################
 ## dynamic reconfigure generation ##
