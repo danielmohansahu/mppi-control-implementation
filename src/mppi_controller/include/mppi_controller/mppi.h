@@ -27,10 +27,21 @@ namespace mppi
 {
 
 // convenience method to get Yaw from Quaternion
-// https://stackoverflow.com/questions/5782658/extracting-yaw-from-a-quaternion
+// https://github.com/ros/geometry2/blob/noetic-devel/tf2/include/tf2/impl/utils.h
 static inline float yaw_from_quat(const geometry_msgs::Quaternion& q)
 {
-  return std::atan2(2.0 * (q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
+  const float sqx = q.x * q.x;
+  const float sqy = q.y * q.y;
+  const float sqz = q.z * q.z;
+  const float sqw = q.w * q.w;
+
+  // Cases derived from https://orbitalstation.wordpress.com/tag/quaternion/
+  if (const float sarg = -2 * (q.x * q.z - q.w * q.y) / (sqx + sqy + sqz + sqw); sarg <= -0.99999)
+    return -2.0 * atan2(q.y, q.x);
+  else if (sarg >= 0.99999)
+    return 2.0 * atan2(q.y, q.x);
+  else
+    return std::atan2(2.0 * (q.x * q.y + q.w * q.z), sqw + sqx - sqy - sqz);
 }
 
 // controller parameters
@@ -58,7 +69,6 @@ class MPPI
  public:
 
   // construct new MPPI instance
-  MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh);
   MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh, const std::shared_ptr<Options> options);
 
   // set target goal; this clears extant plans and stops planning

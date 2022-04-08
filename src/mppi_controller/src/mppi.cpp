@@ -8,16 +8,6 @@
 namespace mppi
 {
 
-MPPI::MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh)
- : model_(model),
-   options_(new Options()),
-   random_generator_(std::random_device{}()),
-   random_distribution_(0.0, options_->std)
-{
-  assert(model_->dt == options_->dt && "Forward model assumes a different timestep!");
-  debug_pub_ = nh.advertise<visualization_msgs::MarkerArray>("rollouts", 1);
-}
-
 MPPI::MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh, const std::shared_ptr<Options> options)
  : model_(model),
    options_(options),
