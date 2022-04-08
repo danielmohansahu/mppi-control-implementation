@@ -11,8 +11,6 @@ set(BUILD_DEPS
   dynamic_reconfigure
 )
 set(PKG_DEPS
-  jackal_ignition
-  rviz
   ${BUILD_DEPS}
 )
 
