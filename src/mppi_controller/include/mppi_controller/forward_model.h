@@ -42,8 +42,8 @@ struct ForwardModel
 
   // platform command constraints
   //  calculated from nominal max velocity (2m/s) / wheel radius (~0.1m)
-  std::atomic<float> max_omega {2.0};
-  std::atomic<float> min_omega {-2.0};
+  std::atomic<float> max_omega {20.0};
+  std::atomic<float> min_omega {-20.0};
 
   // simulation specific parameters
   std::atomic<float> dt {0.02};

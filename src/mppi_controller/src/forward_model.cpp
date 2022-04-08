@@ -18,6 +18,7 @@ geometry_msgs::Twist ForwardModel::toMessage(const Controlf& cmd) const
 void ForwardModel::constrain(Eigen::Ref<Matrix> commands) const
 {
   // apply control constraints to the desired commands
+  // @TODO add acceleration constraints!
   commands = commands.cwiseMin(max_omega).cwiseMax(min_omega);
 }
 
