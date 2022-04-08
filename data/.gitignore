@@ -1,0 +1,3 @@
+# ignore bagged data and YAMLs
+*.bag
+*.yaml
