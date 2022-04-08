@@ -26,6 +26,8 @@ def parse_args():
                         help="X location of the goal.")
     parser.add_argument("-y", "--y", default=0.0, type=float,
                         help="Y location of the goal.")
+    parser.add_argument("-r", "--radius", default=1.0, type=float,
+                        help="Radius of goal (for visualization; not actually used by controller).")
     
     args, _ = parser.parse_known_args()
     return args
@@ -53,8 +55,8 @@ if __name__ == "__main__":
     marker.header = goal.header
     marker.type = Marker.CYLINDER
     marker.action = Marker.ADD
-    marker.scale.x = 1.0
-    marker.scale.y = 1.0
+    marker.scale.x = 2.0 * args.radius
+    marker.scale.y = 2.0 * args.radius
     marker.scale.z = 0.01
     marker.pose.position.x = args.x
     marker.pose.position.y = args.y
