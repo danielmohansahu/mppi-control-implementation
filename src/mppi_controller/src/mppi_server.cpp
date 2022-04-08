@@ -10,19 +10,25 @@ namespace mppi
 
 MPPIServer::MPPIServer(ros::NodeHandle nh)
   : opts_(std::make_shared<MPPIOptionsConfig>()),
-    model_(std::make_shared<ForwardModel>(opts_)),
-    controller_(std::make_unique<MPPI>(model_, nh, opts_)),
     waypoint_server_(nh, "waypoint", boost::bind(&MPPIServer::execute, this, _1), false)
 {
   ROS_INFO_NAMED("MPPIServer", "Controller instantiated, bringing up server...");
 
+  // instantiate dynamic reconfigure server
+  //  this needs to be done first to ensure all options are set to their correct values
+  //  e.g. not everything is dynamic!
+  reconfigure_server_.setCallback(
+    boost::bind(&MPPIServer::reconfigure_callback, this, _1, _2));
+
+  // initialize forward model
+  model_ = std::make_shared<ForwardModel>(opts_);
+
+  // initialize controller itself
+  controller_ = std::make_unique<MPPI>(model_, nh, opts_);
+
   // instantiate ROS publishers
   twist_pub_ = nh.advertise<Twist>("cmd_vel", 1);
   twist_debug_pub_ = nh.advertise<TwistStamped>("cmd_vel_debug", 1);
-
-  // instantiate dynamic reconfigure server
-  reconfigure_server_.setCallback(
-    boost::bind(&MPPIServer::reconfigure_callback, this, _1, _2));
 
   // set up subscriber to capture robot odometry
   odom_sub_ = nh.subscribe<Odometry>("odom", 1,
@@ -37,17 +43,24 @@ MPPIServer::MPPIServer(ros::NodeHandle nh)
   while (ros::ok())
     if (std::unique_lock<std::mutex> lock(mutex_); !current_odometry_)
       ROS_WARN_THROTTLE_NAMED(5, "mppi_controller_node", "Waiting for initial odometry.");
+    else
+      break;
 
   // initialize and start action server
+  ROS_INFO_NAMED("MPPIServer", "Starting action server.");
   waypoint_server_.start();
 
   ROS_INFO_NAMED("MPPIServer", "MPPI server instantiated. Ready to execute goals.");
 }
 
-void MPPIServer::reconfigure_callback(const MPPIOptionsConfig& opts, uint32_t)
+void MPPIServer::reconfigure_callback(MPPIOptionsConfig opts, uint32_t)
 {
-  opts_ = std::make_shared<MPPIOptionsConfig>(opts);
+  *opts_ = std::move(opts);
   ROS_INFO("Received new dynamic reconfigure request.");
+  
+  // sanity check via spot-checks
+  assert(opts_->wheel_radius != 0 && "Something went wrong with dynamic reconfigure.");
+  assert(opts_->rollouts != 0 && "Something went wrong with dynamic reconfigure.");
 }
 
 nav_msgs::Odometry MPPIServer::add_noise(const Odometry& odom)

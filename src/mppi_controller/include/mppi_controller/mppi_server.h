@@ -59,7 +59,7 @@ class MPPIServer
   void execute(const WaypointGoal::ConstPtr& goal);
 
   // dynamic reconfigure callback
-  void reconfigure_callback(const MPPIOptionsConfig& opts, uint32_t);
+  void reconfigure_callback(MPPIOptionsConfig opts, uint32_t);
 
   // simulate odometry noise
   Odometry add_noise(const Odometry& odom);
