@@ -14,6 +14,7 @@ MPPI::MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh)
    random_generator_(std::random_device{}()),
    random_distribution_(0.0, options_->std)
 {
+  assert(model_->dt == options_->dt && "Forward model assumes a different timestep!");
   debug_pub_ = nh.advertise<visualization_msgs::MarkerArray>("rollouts", 1);
 }
 
@@ -23,6 +24,7 @@ MPPI::MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh, const
    random_generator_(std::random_device{}()),
    random_distribution_(0.0, options_->std)
 {
+  assert(model_->dt == options_->dt && "Forward model assumes a different timestep!");
   debug_pub_ = nh.advertise<visualization_msgs::MarkerArray>("rollouts", 1);
 }
 
