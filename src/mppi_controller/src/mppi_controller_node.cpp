@@ -26,12 +26,12 @@ using nav_msgs::Odometry;
 using mppi_controller::MPPIOptionsConfig;
 
 // global options structure
-std::shared_ptr<MPPIOptionsConfig> opts2;
+std::shared_ptr<MPPIOptionsConfig> options;
 
 // dynamic reconfigure callback
 void reconfigure_callback(const MPPIOptionsConfig& opts, uint32_t)
 {
-  opts2 = std::make_shared<MPPIOptionsConfig>(opts);
+  options = std::make_shared<MPPIOptionsConfig>(opts);
   ROS_INFO("Received new dynamic reconfigure request.");
 }
 
@@ -66,17 +66,15 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "mppi_controller_node");
   ros::NodeHandle nh;
 
-  // construct Options struct
-  auto options = std::make_shared<mppi::Options>();
-  opts2 = std::make_shared<MPPIOptionsConfig>();
+  // construct default Options struct
+  options = std::make_shared<MPPIOptionsConfig>();
 
   // construct dynamic reconfigure server
   dynamic_reconfigure::Server<MPPIOptionsConfig> server;
   server.setCallback(boost::bind(&reconfigure_callback, _1, _2));
 
   // construct forward model
-  auto forward_model = std::make_shared<mppi::ForwardModel>();
-  forward_model->dt = options->dt;
+  auto forward_model = std::make_shared<mppi::ForwardModel>(options);
   ROS_INFO_NAMED("mppi_controller_node", "ForwardModel instantiated.");
 
   // construct base controller

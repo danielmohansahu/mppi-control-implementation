@@ -17,6 +17,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
+#include <mppi_controller/MPPIOptionsConfig.h>
 
 // custom
 #include "types.h"
@@ -44,29 +45,11 @@ static inline float yaw_from_quat(const geometry_msgs::Quaternion& q)
     return std::atan2(2.0 * (q.x * q.y + q.w * q.z), sqw + sqx - sqy - sqz);
 }
 
-// controller parameters
-struct Options
-{
-  // general parameters
-  std::string frame_id {"jackal/odom"}; // planning frame
-  float horizon {5.0};                  // planning horizon, seconds
-  float dt {0.05};                      // timestep between planning iterations
-  float goal_radius {1.0};              // radius around goal to consider "achieved"
-
-  // sampling parameters
-  float std {2.0};             // standard deviation of sampling distribution
-  unsigned int rollouts {100};  // number of rollouts to evaluate
-
-  // cost parameters
-  float weight_dist {1.0};    // penalize euclidean distance
-  float weight_vel {1.0};     // penalize deviance from desired velocity
-  float desired_vel {2.0};    // desired velocity (m/s)
-  float weight_omega {100.0}; // penalize angular velocity
-};
-
+// core MPPI algorithm implementation class
 class MPPI
 {
  public:
+  using Options = mppi_controller::MPPIOptionsConfig;
 
   // construct new MPPI instance
   MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh, const std::shared_ptr<Options> options);

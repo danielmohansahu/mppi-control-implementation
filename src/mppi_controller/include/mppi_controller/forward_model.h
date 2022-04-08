@@ -10,6 +10,7 @@
 
 // ROS
 #include <geometry_msgs/Twist.h>
+#include <mppi_controller/MPPIOptionsConfig.h>
 
 // Eigen
 #include <eigen3/Eigen/Core>
@@ -26,32 +27,8 @@ namespace mppi
  */
 struct ForwardModel
 {
-  // nominal Jackal physical parameters
-  std::atomic<float> wheel_radius {0.098};
-  std::atomic<float> wheel_separation {0.262};
-
-  // time-dependent coefficients
-  //  defaults result in a simple friction-free kinematic model
-  std::atomic<float> icr {0.0};
-  std::atomic<float> slip_left {0.0};
-  std::atomic<float> slip_right {0.0};
-
-  // simulate control delay
-  //  @TODO; currently unused
-  std::atomic<float> delay {0.0};
-
-  // platform command constraints
-  //  wheel constraints calculated by constraints from controller (as follows) divided by nominal wheel radii
-  //  e.g. angular velocity = nominal max velocity (2m/s) / wheel radius (~0.1m)
-  // source:
-  //  https://github.com/jackal/jackal/blob/noetic-devel/jackal_control/config/control.yaml#L25
-  std::atomic<float> max_omega {20.0};
-  std::atomic<float> min_omega {-20.0};
-  std::atomic<float> max_alpha {200.0};
-  std::atomic<float> min_alpha {-200.0};
-
-  // simulation specific parameters
-  std::atomic<float> dt {0.02};
+  // convenience typedef
+  using Options = mppi_controller::MPPIOptionsConfig;
 
   // predict the output of the given control sequence
   Eigen::MatrixXf rollout(const Eigen::Ref<Statef> state, const Eigen::Ref<Matrix> commands) const;
@@ -62,9 +39,19 @@ struct ForwardModel
   // apply control constraints to the given command set
   void constrain(Eigen::Ref<Matrix> commands) const;
 
+  // required constructor
+  ForwardModel() = delete;
+  explicit ForwardModel(const std::shared_ptr<Options>& opts)
+    : opts_(opts)
+  {}
+
  private:
   // get the matrix that maps angular velocities to twist
   VelMatrix get_velocity_map() const;
+
+  // configurable parameters
+  const std::shared_ptr<Options> opts_;
+
 };
 
 } // namespace mppi

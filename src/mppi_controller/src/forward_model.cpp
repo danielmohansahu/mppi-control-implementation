@@ -20,18 +20,18 @@ void ForwardModel::constrain(Eigen::Ref<Matrix> commands) const
   // apply control constraints to the desired commands
 
   // clamp to maximum allowed velocity constraints
-  commands = commands.cwiseMin(max_omega).cwiseMax(min_omega);
+  commands = commands.cwiseMin(opts_->max_omega).cwiseMax(opts_->min_omega);
 
   // iterate through time steps, applying angular acceleration constraints
   //  @TODO figure out how to do vectorize this operation
   for (auto j = 0; j != commands.cols(); ++j)
     for (auto i = 1; i != commands.rows(); ++i)
     {
-      const auto alpha = (commands(i,j) - commands(i-1,j)) / dt;
-      if (alpha > max_alpha)
-        commands(i,j) = commands(i-1,j) + max_alpha * dt;
-      else if (alpha < min_alpha)
-        commands(i,j) = commands(i-1,j) + min_alpha * dt;
+      const auto alpha = (commands(i,j) - commands(i-1,j)) / opts_->dt;
+      if (alpha > opts_->max_alpha)
+        commands(i,j) = commands(i-1,j) + opts_->max_alpha * opts_->dt;
+      else if (alpha < opts_->min_alpha)
+        commands(i,j) = commands(i-1,j) + opts_->min_alpha * opts_->dt;
     }
 }
 
@@ -42,10 +42,10 @@ VelMatrix ForwardModel::get_velocity_map() const
   //  https://www.joydeepb.com/Publications/icra2019_skid_steer.pdf
   //  Equation #8
   VelMatrix velocity_map = VelMatrix::Zero();
-  velocity_map << (wheel_separation * (1 - slip_left) / 2), (wheel_separation * (1 - slip_right) / 2),
-                  (icr * (1 - slip_left)), (icr * (1 - slip_right)),
-                  (slip_left - 1), (1 - slip_right);
-  velocity_map *= wheel_radius / wheel_separation;
+  velocity_map << (opts_->wheel_separation * (1 - opts_->slip_left) / 2), (opts_->wheel_separation * (1 - opts_->slip_right) / 2),
+                  (opts_->icr * (1 - opts_->slip_left)), (opts_->icr * (1 - opts_->slip_right)),
+                  (opts_->slip_left - 1), (1 - opts_->slip_right);
+  velocity_map *= opts_->wheel_radius / opts_->wheel_separation;
   return velocity_map;
 }
 
@@ -83,10 +83,10 @@ Eigen::MatrixXf ForwardModel::rollout(const Eigen::Ref<Statef> state,
       // integrate velocities to get positions
       const auto&& pos = trajectories.block(STATE_DIM * i, j, POS_DIM, 1);  // previous step's position
       trajectories(STATE_DIM * (i + 1), j) =
-        pos(0,0) + vel(0,0) * std::cos(pos(2,0)) * dt + vel(1,0) * std::sin(pos(2,0)) * dt;
+        pos(0,0) + vel(0,0) * std::cos(pos(2,0)) * opts_->dt + vel(1,0) * std::sin(pos(2,0)) * opts_->dt;
       trajectories(STATE_DIM * (i + 1) + 1, j) =
-        pos(1,0) + vel(1,0) * std::cos(pos(2,0)) * dt + vel(0,0) * std::sin(pos(2,0)) * dt;
-      trajectories(STATE_DIM * (i + 1) + 2, j) = pos(2,0) + vel(2,0) * dt;
+        pos(1,0) + vel(1,0) * std::cos(pos(2,0)) * opts_->dt + vel(0,0) * std::sin(pos(2,0)) * opts_->dt;
+      trajectories(STATE_DIM * (i + 1) + 2, j) = pos(2,0) + vel(2,0) * opts_->dt;
     }
 
   // return expected trajectories
