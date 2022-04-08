@@ -17,6 +17,6 @@
 
   <!-- include rviz -->
   <node name="rviz" type="rviz" pkg="rviz" output="screen"
-        required="true" args="-d $(find mppi_controller)/config/$(arg namespace).rviz"/>
+        required="true" args="-d $(find mppi_demo)/config/$(arg namespace).rviz"/>
 
 </launch>
