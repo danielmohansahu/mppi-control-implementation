@@ -8,6 +8,7 @@ set(BUILD_DEPS
   roscpp
   geometry_msgs
   nav_msgs
+  dynamic_reconfigure
 )
 set(PKG_DEPS
   jackal_ignition
@@ -17,6 +18,13 @@ set(PKG_DEPS
 
 find_package(catkin REQUIRED ${BUILD_DEPS})
 find_package(Eigen3 REQUIRED)
+
+####################################
+## dynamic reconfigure generation ##
+####################################
+generate_dynamic_reconfigure_options(
+  config/MPPIOptions.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -47,6 +55,7 @@ add_executable(${PROJECT_NAME}_node
 
 ## Add cmake target dependencies of the executable
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
