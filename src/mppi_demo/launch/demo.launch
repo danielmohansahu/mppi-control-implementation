@@ -4,6 +4,11 @@
   <arg name="namespace" default="jackal" />
   <arg name="world" default="empty" doc="Gazebo world to spawn."/>
 
+  <!-- bag record arguments -->
+  <arg name="bag" default="false" doc="Bag data from this run for analysis." />
+  <arg if="$(arg bag)"
+       name="bag_target" default="$(find mppi_demo)/data/demo_bag" doc="Location to store bagged data." />
+
   <!-- include MPPI controller launch -->
   <include file="$(find mppi_controller)/launch/mppi_controller.launch" >
     <arg name="namespace" value="$(arg namespace)" />
@@ -18,5 +23,9 @@
   <!-- include rviz -->
   <node name="rviz" type="rviz" pkg="rviz" output="screen"
         required="true" args="-d $(find mppi_demo)/config/$(arg namespace).rviz"/>
+
+  <!-- bag, if requested -->
+  <node if="$(arg bag)" name="rosbag_record" type="record" pkg="rosbag"
+        args="-O $(arg bag_target) -a" />
 
 </launch>
