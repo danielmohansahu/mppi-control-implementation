@@ -26,8 +26,8 @@ using nav_msgs::Odometry;
 inline bool achieved(const PoseStamped& goal, const Odometry& odom, const float radius)
 {
   float dist = std::pow(goal.pose.position.x - odom.pose.pose.position.x, 2.0)
-                       + std::pow(goal.pose.position.y - odom.pose.pose.position.y, 2.0);
-  return dist <= std::pow(radius, 2.0);
+               + std::pow(goal.pose.position.y - odom.pose.pose.position.y, 2.0);
+  return dist < std::pow(radius, 2.0);
 }
 
 // simulate odometry noise
