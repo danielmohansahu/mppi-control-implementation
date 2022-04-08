@@ -4,14 +4,13 @@
 geometry_msgs/PoseStamped pose  # desired location
 float64 radius                  # radius within which we must be
 float64 velocity                # desired linear velocity (m/s)
+float64 timeout                 # maximum amount of time allowed (s). 0 is no timeout
 
 ---
-
 # result definition
 bool success
 
 ---
-
 # feedback definition
 nav_msgs/Odometry odom      # current state estimate
 geometry_msgs/Twist cmd_vel # current commanded velocity

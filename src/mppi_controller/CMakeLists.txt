@@ -9,6 +9,7 @@ set(BUILD_DEPS
   geometry_msgs
   nav_msgs
   dynamic_reconfigure
+  actionlib
   actionlib_msgs
 )
 set(PKG_DEPS
@@ -63,6 +64,7 @@ add_executable(${PROJECT_NAME}_node
   src/forward_model.cpp
   src/mppi.cpp
   src/mppi_controller_node.cpp
+  src/mppi_server.cpp
   src/visualization.cpp
  )
 
