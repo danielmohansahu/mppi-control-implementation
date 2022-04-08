@@ -9,8 +9,10 @@
 
 // ROS
 #include <ros/ros.h>
+#include <dynamic_reconfigure/server.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <mppi_controller/MPPIOptionsConfig.h>
 
 // custom
 #include <mppi_controller/forward_model.h>
@@ -21,6 +23,17 @@ using geometry_msgs::Twist;
 using geometry_msgs::TwistStamped;
 using geometry_msgs::PoseStamped;
 using nav_msgs::Odometry;
+using mppi_controller::MPPIOptionsConfig;
+
+// global options structure
+std::shared_ptr<MPPIOptionsConfig> opts2;
+
+// dynamic reconfigure callback
+void reconfigure_callback(const MPPIOptionsConfig& opts, uint32_t)
+{
+  opts2 = std::make_shared<MPPIOptionsConfig>(opts);
+  ROS_INFO("Received new dynamic reconfigure request.");
+}
 
 // check if we're within our goal radius
 inline bool achieved(const PoseStamped& goal, const Odometry& odom, const float radius)
@@ -55,6 +68,11 @@ int main(int argc, char** argv)
 
   // construct Options struct
   auto options = std::make_shared<mppi::Options>();
+  opts2 = std::make_shared<MPPIOptionsConfig>();
+
+  // construct dynamic reconfigure server
+  dynamic_reconfigure::Server<MPPIOptionsConfig> server;
+  server.setCallback(boost::bind(&reconfigure_callback, _1, _2));
 
   // construct forward model
   auto forward_model = std::make_shared<mppi::ForwardModel>();
