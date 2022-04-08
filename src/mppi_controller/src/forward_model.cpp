@@ -18,8 +18,21 @@ geometry_msgs::Twist ForwardModel::toMessage(const Controlf& cmd) const
 void ForwardModel::constrain(Eigen::Ref<Matrix> commands) const
 {
   // apply control constraints to the desired commands
-  // @TODO add acceleration constraints!
+
+  // clamp to maximum allowed velocity constraints
   commands = commands.cwiseMin(max_omega).cwiseMax(min_omega);
+
+  // iterate through time steps, applying angular acceleration constraints
+  //  @TODO figure out how to do vectorize this operation
+  for (auto j = 0; j != commands.cols(); ++j)
+    for (auto i = 1; i != commands.rows(); ++i)
+    {
+      const auto alpha = (commands(i,j) - commands(i-1,j)) / dt;
+      if (alpha > max_alpha)
+        commands(i,j) = commands(i-1,j) + max_alpha * dt;
+      else if (alpha < min_alpha)
+        commands(i,j) = commands(i-1,j) + min_alpha * dt;
+    }
 }
 
 VelMatrix ForwardModel::get_velocity_map() const
@@ -40,7 +53,6 @@ Eigen::MatrixXf ForwardModel::rollout(const Eigen::Ref<Statef> state,
                                       const Eigen::Ref<Matrix> commands) const
 {
   // @TODO how to handle time delays?
-
 
   // sanity check input dimensions
   assert(commands.rows() % CONTROL_DIM == 0 && "'commands' must be a sequence of controls");

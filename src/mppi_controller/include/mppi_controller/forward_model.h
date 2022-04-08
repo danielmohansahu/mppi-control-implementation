@@ -41,9 +41,14 @@ struct ForwardModel
   std::atomic<float> delay {0.0};
 
   // platform command constraints
-  //  calculated from nominal max velocity (2m/s) / wheel radius (~0.1m)
+  //  wheel constraints calculated by constraints from controller (as follows) divided by nominal wheel radii
+  //  e.g. angular velocity = nominal max velocity (2m/s) / wheel radius (~0.1m)
+  // source:
+  //  https://github.com/jackal/jackal/blob/noetic-devel/jackal_control/config/control.yaml#L25
   std::atomic<float> max_omega {20.0};
   std::atomic<float> min_omega {-20.0};
+  std::atomic<float> max_alpha {200.0};
+  std::atomic<float> min_alpha {-200.0};
 
   // simulation specific parameters
   std::atomic<float> dt {0.02};
