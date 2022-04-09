@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>model_regression</name>
+  <version>1.0.0</version>
+  <description>Scripts for regression fitting a Forward Model.</description>
+
+  <maintainer email="dms@dms.com">Daniel M. Sahu</maintainer>
+  <author email="dms@dms.com">Daniel M. Sahu</author>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+  </export>
+</package>
