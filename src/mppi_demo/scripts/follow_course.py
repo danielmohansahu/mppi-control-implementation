@@ -67,7 +67,8 @@ if __name__ == "__main__":
 
     # create marker
     marker = Marker()
-    marker.header = args.frame_id
+    marker.header.stamp = rospy.Time.now()
+    marker.header.frame_id = args.frame_id
     marker.type = Marker.CYLINDER
     marker.action = Marker.ADD
     marker.scale.x = 2.0 * goal.major
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     marker.scale.z = 0.01
     marker.pose.orientation.w = 1.0
     marker.color.g = 1.0
-    marker.color.a = 0.5
+    marker.color.a = 1.0
 
     rospy.loginfo("Sending goal: \n{}".format(goal))
     client.send_goal(goal)
@@ -83,8 +84,6 @@ if __name__ == "__main__":
 
     # wait for success (or failure)
     client.wait_for_result()
-    result = client.get_result()
-
-    rospy.loginfo("Server {}".format("succeeded!" if result.success else "failed."))
+    rospy.loginfo("Server succeeded! (I think)")
 
     # and, we're done
