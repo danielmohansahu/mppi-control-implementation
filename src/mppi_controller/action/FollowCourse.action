@@ -1,0 +1,20 @@
+### follow a specified course for the given duration
+
+# goal definition
+
+# potential course types
+uint8 ELLIPSE=0
+
+float64 major     # major axis length (m)
+float64 minor     # minor axis length (m)
+float64 velocity  # desired linear velocity (m/s)
+float64 duration  # duration of the course
+
+---
+# result definition
+
+---
+# feedback definition
+nav_msgs/Odometry odom      # current state estimate
+geometry_msgs/Twist cmd_vel # current commanded velocity
+

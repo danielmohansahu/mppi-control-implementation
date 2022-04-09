@@ -26,7 +26,7 @@ find_package(Eigen3 REQUIRED)
 ############################
 add_action_files(
   DIRECTORY action
-  FILES Waypoint.action
+  FILES Waypoint.action FollowCourse.action
 )
 
 generate_messages(
