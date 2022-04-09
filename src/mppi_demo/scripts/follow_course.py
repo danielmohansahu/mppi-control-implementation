@@ -41,7 +41,7 @@ def random_if_none(x):
     """
     if x is not None:
         return x
-    return 10.0 * (random.random())
+    return random.uniform(4.5, 6.5)
 
 if __name__ == "__main__":
     # initialize node
