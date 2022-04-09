@@ -17,6 +17,7 @@ The procedure of each run is as follows:
 import os
 import random
 import subprocess
+from datetime import datetime
 from contextlib import contextmanager
 
 # ROS
@@ -32,7 +33,7 @@ from visualization_msgs.msg import Marker
 from follow_course import follow, parse_args
 
 # Global variables (yuck)
-DURATION = 30
+DURATION = 120
 VELOCITY = 2.0
 RECONFIGURE_NODE = "jackal/mppi_controller"
 BAG_DEST = os.path.abspath(os.path.join(__file__, "..", "..", "data"))
@@ -44,8 +45,7 @@ TOPICS = ["/tf", "/tf_static", "/clock", "/jackal/cmd_vel", "/jackal/odom",
 def generate_bag_name():
     """ Generate a randomized bag name.
     """
-    # @TODO!
-    return "test"
+    return "run_" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 @contextmanager
 def bag_record(name):

@@ -65,7 +65,9 @@ def follow(args, client, pub):
     marker.color.g = 1.0
     marker.color.a = 0.25
 
-    rospy.loginfo("Sending goal: \n{}".format(goal))
+    rospy.loginfo("Sending goal:")
+    for param in ["major", "minor", "velocity", "duration"]:
+        rospy.loginfo("\t{}: {:.3f}".format(param, getattr(goal,param)))
     client.send_goal(goal)
     pub.publish(marker)
 
