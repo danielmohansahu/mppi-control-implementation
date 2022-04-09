@@ -43,7 +43,7 @@ VelMatrix ForwardModel::get_velocity_map() const
   //  Equation #8
   VelMatrix velocity_map = VelMatrix::Zero();
   velocity_map << (opts_->wheel_separation * (1 - opts_->slip_left) / 2), (opts_->wheel_separation * (1 - opts_->slip_right) / 2),
-                  (opts_->icr * (1 - opts_->slip_left)), (opts_->icr * (1 - opts_->slip_right)),
+                  (opts_->icr * (1 - opts_->slip_left)), (opts_->icr * (opts_->slip_right - 1)),
                   (opts_->slip_left - 1), (1 - opts_->slip_right);
   velocity_map *= opts_->wheel_radius / opts_->wheel_separation;
   return velocity_map;
