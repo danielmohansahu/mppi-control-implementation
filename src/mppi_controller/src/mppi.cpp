@@ -163,18 +163,21 @@ float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
     // add deviance from desired goal
     // @TODO clean this up w/ std::visit
     float euclidean_dist = 0;
+    float desired_vel = 0;
     switch (goal_type_)
     {
       case GoalTypes::WAYPOINT:
       {
         const auto& pos = std::get<WaypointGoal>(goal_).pose.pose.position;
         euclidean_dist = std::sqrt( std::pow(pos.x - x, 2.0) + std::pow(pos.y - y, 2.0) );
+        desired_vel = std::get<WaypointGoal>(goal_).velocity;
         break;
       }
       case GoalTypes::FOLLOWCOURSE:
       {
         const auto& g = std::get<FollowCourseGoal>(goal_);
         euclidean_dist = std::abs(1 - std::pow(x, 2.0) / std::pow(g.major, 2.0) - std::pow(y, 2.0) / std::pow(g.minor, 2.0));
+        desired_vel = std::get<WaypointGoal>(goal_).velocity;
         break;
       }
       default: throw std::runtime_error("Reached unreachable code.");
@@ -182,7 +185,7 @@ float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
     cumulative += options_->weight_dist * euclidean_dist;
 
     // add deviance from desired velocity
-    cumulative += options_->weight_vel * std::abs(dx - options_->desired_vel);
+    cumulative += options_->weight_vel * std::abs(dx - desired_vel);
 
     // penalize rotation
     cumulative += options_->weight_omega * std::abs(dtheta);
