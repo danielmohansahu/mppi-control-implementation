@@ -58,15 +58,11 @@ Some papers that were instrumental in grokking MPPI are as follows.
  - G. Williams, P. Drews, B. Goldfain, J. M. Rehg and E. A. Theodorou, "Aggressive driving with model predictive path integral control," 2016 IEEE International Conference on Robotics and Automation (ICRA), 2016, pp. 1433-1440, doi: 10.1109/ICRA.2016.7487277. 
  - Williams, Grady & Aldrich, Andrew & Theodorou, Evangelos. (2017). Model Predictive Path Integral Control: From Theory to Parallel Computation. Journal of Guidance, Control, and Dynamics. 40. 1-14. 10.2514/1.G001921. [PDF link](https://arc.aiaa.org/doi/pdf/10.2514/1.G001921)
  - G. Williams et al., "Information theoretic MPC for model-based reinforcement learning," 2017 IEEE International Conference on Robotics and Automation (ICRA), 2017, pp. 1714-1721, doi: 10.1109/ICRA.2017.7989202. [PDF link](https://faculty.cc.gatech.edu/~bboots3/files/InformationTheoreticMPC.pdf)
+ - S. Rabiee and J. Biswas, "A Friction-Based Kinematic Model for Skid-Steer Wheeled Mobile Robots," 2019 International Conference on Robotics and Automation (ICRA), 2019, pp. 8563-8569, doi: 10.1109/ICRA.2019.8794216. [PDF link](https://www.joydeepb.com/Publications/icra2019_skid_steer.pdf)
 
-Some open source projects which were very helpful:
+Some open source projects and other links which were very helpful:
 
- - [fields-ignition](https://github.com/azazdeaz/fields-ignition)
- - [GaTech AutoRally](https://github.com/AutoRally/autorally)
- - [Getting Started with Ignition Gazebo](https://cyaninfinite.com/getting-started-with-ignition-gazebo/)
- - [ros_ign](https://github.com/ignitionrobotics/ros_ign/tree/noetic)
- - [MPPI Implementation](https://github.com/bostoncleek/ROS-Turtlebot-Navigation/tree/master/controller)
- - [Skid Steer Kimatics](https://mdpi-res.com/d_attachment/sensors/sensors-15-09681/article_deploy/sensors-15-09681-v2.pdf)
- - [Skid Steer Friction Kinematics](https://www.joydeepb.com/Publications/icra2019_skid_steer.pdf)
+ - [GaTech AutoRally](https://github.com/AutoRally/autorally) provides an implementation of MPPI for a scaled racecar.
+ - [bostoncleek's MPPI Implementation](https://github.com/bostoncleek/ROS-Turtlebot-Navigation/tree/master/controller) provides another example implementation of MPPI.
 
 
