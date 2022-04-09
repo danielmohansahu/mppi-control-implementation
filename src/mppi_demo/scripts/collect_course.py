@@ -32,11 +32,11 @@ from visualization_msgs.msg import Marker
 from follow_course import follow, parse_args
 
 # Global variables (yuck)
-DURATION = 120
+DURATION = 30
 VELOCITY = 2.0
 RECONFIGURE_NODE = "jackal/mppi_controller"
 BAG_DEST = os.path.abspath(os.path.join(__file__, "..", "..", "data"))
-PARAMS = ["wheel_radius", "wheel_separation", "icr", "slip_left", "slip_right"]
+PARAMS = ["wheel_radius", "wheel_separation"] # , "icr", "slip_left", "slip_right"]
 TOPICS = ["/tf", "/tf_static", "/clock", "/jackal/cmd_vel", "/jackal/odom",
           "/jackal/follow_course/goal", "/jackal/follow_course/result",
           "/jackal/mppi_controller/parameter_descriptions", "/jackal/mppi_controller/parameter_updates"]
@@ -52,8 +52,10 @@ def bag_record(name):
     """ Context manager to ensure bags get closed properly.
     """
     # start bagging
-    cmd = "exec rosbag record -O {} {}".format(os.path.join(BAG_DEST, name), " ".join(TOPICS))
-    rospy.loginfo("Bagging via \n\t'{}'".format(cmd))
+    full_path = os.path.join(BAG_DEST, name)
+    rospy.loginfo("Saving bag to {}".format(full_path))
+    cmd = "exec rosbag record --lz4 -O {} {}".format(full_path, " ".join(TOPICS))
+    rospy.logdebug("Bagging via \n\t'{}'".format(cmd))
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     try:
         yield
@@ -93,7 +95,9 @@ def execute():
 
         # send a dynamic reconfigure request
         reconfigure_client.update_configuration(params)
-        print("Set random params: \n{}".format(params))
+        rospy.loginfo("Set random params:")
+        for param,val in params.items():
+            rospy.loginfo("\t{}: {:.3f}".format(param, val))
 
         # wait, again, just to make sure things are ok
         rospy.sleep(1.0)
