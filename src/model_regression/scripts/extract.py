@@ -29,17 +29,21 @@ DEFAULT_OUTPUT = os.path.abspath(os.path.join(__file__, "..", "..",  "data", "co
 # nominal location of where data gets stored
 DEFAULT_DATA_DIRECTORY = os.path.abspath(os.path.join(__file__, "..", "..", "..", "mppi_demo", "data"))
 
-def parse_args()
+def parse_args():
     parser = argparse.ArgumentParser("Extract bagged data from the target directory into CSV.")
     parser.add_argument("--directory", default=DEFAULT_DATA_DIRECTORY,
                         help="Location of bagged data.")
     parser.add_argument("-o", "--output", default=DEFAULT_OUTPUT,
                         help="Location to store CSV data.")
-    return parser.parse_args()
+    args,_ = parser.parse_known_args()
+    return args
 
 if __name__ == "__main__":
+    # parse input arguments
+    args = parse_args()
+
     # instantiate data extraction class
-    extractor = Extractor(params_topic=TOPICS["param"],
+    extractor = Extractor(params_topic=TOPICS["params"],
                           goal_topic=TOPICS["goal"],
                           result_topic=TOPICS["result"],
                           odom_topic=TOPICS["odom"],
@@ -48,10 +52,10 @@ if __name__ == "__main__":
                           cost_function=cost_function)
 
     # get list of bags to consider
-    bags = glob.glob(os.path.join(args.directory, "*.bag"))
+    bags = glob(os.path.join(args.directory, "*.bag"))
     bags.sort()
 
-    print("Extracting data from {} bags.".format(len(bags)))
+    print("Extracting data from {} bags found in \n{}.".format(len(bags), args.directory))
     for bag in tqdm(bags):
         extractor.extract(bag)
 
