@@ -1,3 +1,4 @@
 # ignore bagged data and YAMLs
 *.bag
+*.active
 *.yaml
