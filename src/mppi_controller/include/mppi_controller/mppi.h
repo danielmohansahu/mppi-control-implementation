@@ -8,16 +8,18 @@
 // STL
 #include <tuple>
 #include <optional>
+#include <variant>
 #include <memory>
 #include <limits>
 #include <random>
 
 // ROS
 #include <ros/ros.h>
-#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <mppi_controller/MPPIOptionsConfig.h>
+#include <mppi_controller/WaypointGoal.h>
+#include <mppi_controller/FollowCourseGoal.h>
 
 // custom
 #include "types.h"
@@ -49,13 +51,18 @@ static inline float yaw_from_quat(const geometry_msgs::Quaternion& q)
 class MPPI
 {
  public:
-  using Options = mppi_controller::MPPIOptionsConfig;
+  using Options           = mppi_controller::MPPIOptionsConfig;
+  using WaypointGoal      = mppi_controller::WaypointGoal;
+  using FollowCourseGoal  = mppi_controller::FollowCourseGoal;
 
   // construct new MPPI instance
   MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh, const std::shared_ptr<Options> options);
 
   // set target goal; this clears extant plans and stops planning
-  void setGoal(const geometry_msgs::PoseStamped& goal);
+  void setGoal(const WaypointGoal& goal);
+
+  // overload for course following goals
+  void setGoal(const FollowCourseGoal& goal);
 
   // clear current goal and stop planning
   void clear();
@@ -63,6 +70,9 @@ class MPPI
   // plan from the given pose, i.e. the current position
   //  we expect this to be called at the control loop rate, e.g. 50Hz
   geometry_msgs::Twist plan(const nav_msgs::Odometry& state);
+
+  // enumeration of supported goal types
+  enum GoalTypes { UNSET, WAYPOINT, FOLLOWCOURSE };
 
  private:
 
@@ -81,8 +91,9 @@ class MPPI
   // parameters
   const std::shared_ptr<Options> options_;
 
-  // current goal
-  std::optional<Posef> goal_;
+  // current goal variables
+  GoalTypes goal_type_;
+  std::variant<std::monostate, WaypointGoal, FollowCourseGoal> goal_;
 
   // current control sequence and corresponding expected trajectory
   std::optional<Matrix> optimal_control_;

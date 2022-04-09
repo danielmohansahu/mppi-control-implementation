@@ -101,7 +101,7 @@ void MPPIServer::executeWP(const WaypointGoal::ConstPtr& goal)
   assert(current_odometry_ && "No odometry information found. Can't execute goal.");
 
   // set new goal for controller
-  controller_->setGoal(goal->pose);
+  controller_->setGoal(*goal);
 
   // initialize result
   WaypointResult result;
@@ -180,6 +180,9 @@ void MPPIServer::executeFC(const FollowCourseGoal::ConstPtr& goal)
     follow_course_server_.setAborted();
     return;
   }
+
+  // set new goal for controller
+  controller_->setGoal(*goal);
 
   // plan until time's up
   bool success = true;

@@ -11,40 +11,53 @@ namespace mppi
 MPPI::MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh, const std::shared_ptr<Options> options)
  : model_(model),
    options_(options),
+   goal_type_(GoalTypes::UNSET),
    random_generator_(std::random_device{}()),
    random_distribution_(0.0, options_->std)
 {
   debug_pub_ = nh.advertise<visualization_msgs::MarkerArray>("rollouts", 1);
 }
 
-void MPPI::setGoal(const geometry_msgs::PoseStamped& goal)
+void MPPI::setGoal(const WaypointGoal& goal)
 {
   ROS_INFO_NAMED("MPPI", "Received new goal.");
 
   // sanity checks
-  assert(goal.header.frame_id == options_->frame_id && "Received unexpected frame ID for goal!");
+  assert(goal.pose.header.frame_id == options_->frame_id && "Received unexpected frame ID for goal!");
 
   // clear any existing goals
   clear();
 
   // construct new goal
-  Posef new_goal = Posef::Zero();
-  new_goal(0,0) = goal.pose.position.x;
-  new_goal(1,0) = goal.pose.position.y;
-  new_goal(2,0) = yaw_from_quat(goal.pose.orientation);
-  goal_ = new_goal;
+  goal_ = goal;
+  goal_type_ = GoalTypes::WAYPOINT;
+}
 
-  // initialize control sequence
-  const size_t steps = std::round(options_->horizon / options_->dt);
-  optimal_control_ = Matrix::Zero(steps * CONTROL_DIM, 1);
+void MPPI::setGoal(const FollowCourseGoal& goal)
+{
+  ROS_INFO_NAMED("MPPI", "Received new goal.");
+
+  // clear any existing goals
+  clear();
+
+  // construct new goal
+  goal_ = goal;
+  goal_type_ = GoalTypes::FOLLOWCOURSE;
 }
 
 void MPPI::clear()
 {
   ROS_INFO_NAMED("MPPI", "Clearing any extant plans.");
-  goal_ = std::nullopt;
+
+  // set class variables back to defaults
+  goal_ = std::monostate();
+  goal_type_ = GoalTypes::UNSET;
   optimal_control_ = std::nullopt;
   last_plan_call_ = std::nullopt;
+
+  // initialize control sequence
+  const size_t steps = std::round(options_->horizon / options_->dt);
+  optimal_control_ = Matrix::Zero(steps * CONTROL_DIM, 1);
 }
 
 geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
@@ -53,7 +66,7 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
   assert(state.header.frame_id == options_->frame_id && "Received unexpected frame_id in state.");
 
   // if we don't have a goal command 0 velocity
-  if (!goal_)
+  if (goal_type_ == GoalTypes::UNSET)
     return geometry_msgs::Twist();
 
   // sanity check planning rate, and warn if we're going unexpectedly fast / slow
@@ -132,7 +145,7 @@ float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
   // return the cost of the given trajectory
 
   // sanity checks
-  assert(goal_ && "Can't determine the cost of a given trajectory without a goal!");
+  assert(goal_type_ != GoalTypes::UNSET && "Can't determine the cost of a given trajectory without a goal!");
   assert(trajectory.cols() == 1 && "Trajectory needs to be a vector, not matrix.");
   assert(trajectory.rows() % STATE_DIM == 0 && "Trajectory matrix has invalid dimensions.");
   const size_t steps = (trajectory.rows() / STATE_DIM);
@@ -142,12 +155,31 @@ float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
   for (size_t i = 0; i != steps; ++i)
   {
     // get expected state variables
-    const auto&& xy = trajectory.block(STATE_DIM * i, 0, 2, 1);
+    const auto x = trajectory(STATE_DIM * i, 0);
+    const auto y = trajectory(STATE_DIM * i + 1, 0);
     const auto dx = trajectory(STATE_DIM * i + 3, 0);
     const auto dtheta = trajectory(STATE_DIM * i + 4, 0);
 
     // add deviance from desired goal
-    cumulative += options_->weight_dist * (goal_->block(0,0,2,1) - xy).norm();
+    // @TODO clean this up w/ std::visit
+    float euclidean_dist = 0;
+    switch (goal_type_)
+    {
+      case GoalTypes::WAYPOINT:
+      {
+        const auto& pos = std::get<WaypointGoal>(goal_).pose.pose.position;
+        euclidean_dist = std::sqrt( std::pow(pos.x - x, 2.0) + std::pow(pos.y - y, 2.0) );
+        break;
+      }
+      case GoalTypes::FOLLOWCOURSE:
+      {
+        const auto& g = std::get<FollowCourseGoal>(goal_);
+        euclidean_dist = std::abs(1 - std::pow(x, 2.0) / std::pow(g.major, 2.0) - std::pow(y, 2.0) / std::pow(g.minor, 2.0));
+        break;
+      }
+      default: throw std::runtime_error("Reached unreachable code.");
+    }
+    cumulative += options_->weight_dist * euclidean_dist;
 
     // add deviance from desired velocity
     cumulative += options_->weight_vel * std::abs(dx - options_->desired_vel);
