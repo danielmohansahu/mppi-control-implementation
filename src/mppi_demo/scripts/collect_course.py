@@ -16,6 +16,7 @@ The procedure of each run is as follows:
 # STL
 import os
 import random
+import signal
 import subprocess
 from datetime import datetime
 from contextlib import contextmanager
@@ -37,7 +38,7 @@ DURATION = 120
 VELOCITY = 2.0
 RECONFIGURE_NODE = "jackal/mppi_controller"
 BAG_DEST = os.path.abspath(os.path.join(__file__, "..", "..", "data"))
-PARAMS = ["wheel_radius", "wheel_separation"] # , "icr", "slip_left", "slip_right"]
+PARAMS = ["wheel_radius", "wheel_separation", "slip_left", "slip_right"] #, "icr"]
 TOPICS = ["/tf", "/tf_static", "/clock", "/jackal/cmd_vel", "/jackal/odom",
           "/jackal/follow_course/goal", "/jackal/follow_course/result",
           "/jackal/mppi_controller/parameter_descriptions", "/jackal/mppi_controller/parameter_updates"]
@@ -50,18 +51,21 @@ def generate_bag_name():
 @contextmanager
 def bag_record(name):
     """ Context manager to ensure bags get closed properly.
+
+    Proper destruction of subprocesses from:
+    https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true
     """
     # start bagging
     full_path = os.path.join(BAG_DEST, name)
     rospy.loginfo("Saving bag to {}".format(full_path))
-    cmd = "exec rosbag record --lz4 -O {} {}".format(full_path, " ".join(TOPICS))
+    cmd = "rosbag record --lz4 -O {} {}".format(full_path, " ".join(TOPICS))
     rospy.logdebug("Bagging via \n\t'{}'".format(cmd))
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
     try:
         yield
     finally:
         # stop bag
-        p.kill()
+        os.killpg(os.getpgid(p.pid), signal.SIGTERM)
 
 def execute():
     """ Full end-to-end execution of a single goal.
