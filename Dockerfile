@@ -12,6 +12,7 @@ RUN apt-get update \
       lsb-release \
       wget \
       gnupg \
+      python3-pip \
     && rm -rf /var/apt/lists/*
 
 # add ignition keys / PPA
@@ -34,6 +35,15 @@ RUN apt-get update \
       ros-noetic-joint-state-publisher \
       ros-noetic-rviz \
     && rm -rf /var/apt/lists/*
+
+# install needed python packages
+RUN pip install --upgrade pip
+RUN pip install -y \
+      tqdm \
+      matplotlib \
+      pandas \
+      seaborn \
+      sklearn
 
 # default drop into a byobu shell in expected mounting directory
 WORKDIR /workspace
