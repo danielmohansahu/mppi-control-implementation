@@ -170,13 +170,7 @@ void MPPIServer::executeWP(const WaypointGoal::ConstPtr& goal)
     publish(add_noise(controller_->plan(add_noise(odom))));
 
     // sleep for the appropriate duration
-    if (ros::Duration delta = (ros::Time::now() - loop_time); delta >= ros::Duration(opts_->dt))
-      // we took too long planning... this is very bad
-      ROS_WARN_THROTTLE_NAMED(5, "MPPIServer", "Planning takes longer than required loop rate!");
-    else
-      // sleep for remainder of loop
-      // @TODO use something better than ros::Time for this?
-      (ros::Duration(opts_->dt) - delta).sleep();
+    (ros::Duration(opts_->dt) - (ros::Time::now() - loop_time)).sleep();
   }
 
   // always send a stop command and clear the controller before exiting
@@ -232,13 +226,7 @@ void MPPIServer::executeFC(const FollowCourseGoal::ConstPtr& goal)
     publish(add_noise(controller_->plan(add_noise(odom))));
 
     // sleep for the appropriate duration
-    if (ros::Duration delta = (ros::Time::now() - loop_time); delta >= ros::Duration(opts_->dt))
-      // we took too long planning... this is very bad
-      ROS_WARN_THROTTLE_NAMED(5, "MPPIServer", "Planning takes longer than required loop rate!");
-    else
-      // sleep for remainder of loop
-      // @TODO use something better than ros::Time for this?
-      (ros::Duration(opts_->dt) - delta).sleep();
+    (ros::Duration(opts_->dt) - (ros::Time::now() - loop_time)).sleep();
   }
 
   // always send a stop command and clear the controller before exiting

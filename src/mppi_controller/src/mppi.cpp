@@ -75,17 +75,17 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
     last_plan_call_ = ros::Time::now();
   else
   {
-    if (const auto delta = ros::Time::now() - *last_plan_call_; delta > ros::Duration(options_->dt * 1.1))
+    if (const auto delta = ros::Time::now() - *last_plan_call_; delta > ros::Duration(options_->dt * 1.25))
     {
       ++issues;
-      ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt
-                                                << " slower than expected. " << issues << " times so far.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(30, "MPPI", "Planning rate " << delta.toSec() / options_->dt
+                                                 << " slower than expected. " << issues << " times so far.");
     }
-    else if (delta < ros::Duration(options_->dt * 0.9))
+    else if (delta < ros::Duration(options_->dt * 0.75))
     {
       ++issues;
-      ROS_WARN_STREAM_THROTTLE_NAMED(5, "MPPI", "Planning rate " << delta.toSec() / options_->dt
-                                                << " faster than expected. " << issues << " times so far.");
+      ROS_WARN_STREAM_THROTTLE_NAMED(30, "MPPI", "Planning rate " << delta.toSec() / options_->dt
+                                                 << " faster than expected. " << issues << " times so far.");
     }
     // update time for next loop
     last_plan_call_ = ros::Time::now();
