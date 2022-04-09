@@ -35,10 +35,10 @@ from follow_course import follow, parse_args
 DURATION = 120
 VELOCITY = 2.0
 RECONFIGURE_NODE = "jackal/mppi_controller"
-BAG_DEST = os.path.abspath(os.path.join(__file__, "..", "data"))
+BAG_DEST = os.path.abspath(os.path.join(__file__, "..", "..", "data"))
 PARAMS = ["wheel_radius", "wheel_separation", "icr", "slip_left", "slip_right"]
 TOPICS = ["/tf", "/tf_static", "/clock", "/jackal/cmd_vel", "/jackal/odom",
-          "/jackal/follow_course/*", "/jackal/waypoint/*", 
+          "/jackal/follow_course/goal", "/jackal/follow_course/result",
           "/jackal/mppi_controller/parameter_descriptions", "/jackal/mppi_controller/parameter_updates"]
 
 def generate_bag_name():
@@ -52,14 +52,14 @@ def bag_record(name):
     """ Context manager to ensure bags get closed properly.
     """
     # start bagging
-    p = subprocess.Popen(
-        "exec rosbag record -O {} {}".format(os.path.join(BAG_DEST, name), " ".join(TOPICS)),
-        stdout=subprocess.PIPE, shell=True)
+    cmd = "exec rosbag record -O {} {}".format(os.path.join(BAG_DEST, name), " ".join(TOPICS))
+    rospy.loginfo("Bagging via \n\t'{}'".format(cmd))
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     try:
         yield
     finally:
         # stop bag
-        p.terminate()
+        p.kill()
 
 def execute():
     """ Full end-to-end execution of a single goal.
