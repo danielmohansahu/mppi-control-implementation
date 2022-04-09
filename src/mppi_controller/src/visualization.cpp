@@ -43,7 +43,7 @@ void visualize(const ros::Publisher& pub,
     msg.r = norm;
     msg.g = 1 - norm;
     // make the lowest cost path a bit more clear
-    msg.a = (cost == min_cost) ? 1.0 : 0.5;
+    msg.a = (cost == min_cost) ? 1.0 : 0.25;
     return msg;
   };
 
