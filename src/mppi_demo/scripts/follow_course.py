@@ -76,7 +76,7 @@ if __name__ == "__main__":
     marker.scale.z = 0.01
     marker.pose.orientation.w = 1.0
     marker.color.g = 1.0
-    marker.color.a = 1.0
+    marker.color.a = 0.25
 
     rospy.loginfo("Sending goal: \n{}".format(goal))
     client.send_goal(goal)
