@@ -25,10 +25,26 @@ catkin build -DCMAKE_BUILD_TYPE=Release
 source devel/setup.bash
 
 # launch demo
-roslaunch mppi_controller demo.launch
+roslaunch mppi_demo demo.launch
 ```
 
-The default demo will spawn a Jackal in an Ignition world with the MPPI controller running.
+The default demo will spawn a Jackal in an Ignition world with the MPPI controller running. Companion scripts can be launched to manually send Waypoint goals or execute course following.
+
+```bash
+# send a waypoint goal at (3, 2)
+rosrun mppi_demo send_goal.py -x 3 -y 2
+
+# command a 'follow ellipse' trajectory for 60 seconds
+rosrun mppi_demo follow_course.py -x 5 -y 5 -d 60
+
+# see all commands for either script with 'rosrun mppi_demo SCRIPT --help'
+```
+
+Examples of each of the above demos executing for the nominal (read: untuned) system:
+
+Waypoint Goal | Follow Course Goal
+--- | ---
+![](docs/waypoint_goals.gif) | ![](docs/course_following.gif)
 
 ## Theory
 
