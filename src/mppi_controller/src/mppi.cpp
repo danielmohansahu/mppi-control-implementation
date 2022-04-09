@@ -177,7 +177,7 @@ float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
       {
         const auto& g = std::get<FollowCourseGoal>(goal_);
         euclidean_dist = std::abs(1 - std::pow(x, 2.0) / std::pow(g.major, 2.0) - std::pow(y, 2.0) / std::pow(g.minor, 2.0));
-        desired_vel = std::get<WaypointGoal>(goal_).velocity;
+        desired_vel = std::get<FollowCourseGoal>(goal_).velocity;
         break;
       }
       default: throw std::runtime_error("Reached unreachable code.");
