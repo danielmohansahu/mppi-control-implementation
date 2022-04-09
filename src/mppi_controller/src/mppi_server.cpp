@@ -11,7 +11,8 @@ namespace mppi
 MPPIServer::MPPIServer(ros::NodeHandle nh)
   : opts_(std::make_shared<MPPIOptionsConfig>()),
     waypoint_server_(nh, "waypoint", boost::bind(&MPPIServer::executeWP, this, _1), false),
-    follow_course_server_(nh, "follow_course", boost::bind(&MPPIServer::executeFC, this, _1), false)
+    follow_course_server_(nh, "follow_course", boost::bind(&MPPIServer::executeFC, this, _1), false),
+    random_generator_(std::random_device{}())
 {
   ROS_INFO_NAMED("MPPIServer", "Controller instantiated, bringing up server...");
 
@@ -20,6 +21,10 @@ MPPIServer::MPPIServer(ros::NodeHandle nh)
   //  e.g. not everything is dynamic!
   reconfigure_server_.setCallback(
     boost::bind(&MPPIServer::reconfigure_callback, this, _1, _2));
+
+  // instantiate random number generators for control / odometry noise
+  random_xy_ = std::normal_distribution<float>(0.0, opts_->state_xy_stddev);
+  random_cmd_ = std::normal_distribution<float>(0.0, opts_->cmd_stddev);
 
   // initialize forward model
   model_ = std::make_shared<ForwardModel>(opts_);
@@ -55,29 +60,44 @@ MPPIServer::MPPIServer(ros::NodeHandle nh)
   ROS_INFO_NAMED("MPPIServer", "MPPI server instantiated. Ready to execute goals.");
 }
 
-void MPPIServer::reconfigure_callback(MPPIOptionsConfig opts, uint32_t)
+void MPPIServer::reconfigure_callback(MPPIOptionsConfig opts, uint32_t level)
 {
-  *opts_ = std::move(opts);
   ROS_INFO("Received new dynamic reconfigure request.");
+
+  // sanity check reconfigure level
+  static bool first_initialization = true;
+  if (!first_initialization && level != 0)
+    ROS_ERROR_STREAM("Reconfigure request tries to change static parameters! Undefined behavior will follow.");
+  first_initialization = false;
+
+  // update our options
+  *opts_ = std::move(opts);
   
   // sanity check via spot-checks
   assert(opts_->wheel_radius != 0 && "Something went wrong with dynamic reconfigure.");
   assert(opts_->rollouts != 0 && "Something went wrong with dynamic reconfigure.");
 }
 
-nav_msgs::Odometry MPPIServer::add_noise(const Odometry& odom)
+nav_msgs::Odometry MPPIServer::add_noise(const Odometry& odom) const
 {
-  // @TODO!
-  return odom;
+  // apply gaussian noise to incoming odometry signal
+  auto copy = odom;
+  copy.pose.pose.position.x += random_xy_(random_generator_);
+  copy.pose.pose.position.y += random_xy_(random_generator_);
+  return copy;
 }
 
-geometry_msgs::Twist MPPIServer::add_noise(const Twist& cmd)
+geometry_msgs::Twist MPPIServer::add_noise(const Twist& cmd) const
 {
-  // @TODO
-  return cmd;
+  // apply gaussian noise to outgoing twist message
+  // @TODO handle steer noise differently than throttle?
+  auto copy = cmd;
+  copy.linear.x += random_cmd_(random_generator_);
+  copy.angular.z += random_cmd_(random_generator_);
+  return copy;
 }
 
-void MPPIServer::publish(const Twist& twist)
+void MPPIServer::publish(const Twist& twist) const
 {
   // publish command and, optionally, debugging information
   twist_pub_.publish(twist);

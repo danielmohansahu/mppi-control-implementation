@@ -12,6 +12,7 @@
 // STL
 #include <mutex>
 #include <optional>
+#include <random>
 
 // ROS
 #include <ros/ros.h>
@@ -70,16 +71,16 @@ class MPPIServer
   void executeFC(const FollowCourseGoal::ConstPtr& goal);
 
   // dynamic reconfigure callback
-  void reconfigure_callback(MPPIOptionsConfig opts, uint32_t);
+  void reconfigure_callback(MPPIOptionsConfig opts, uint32_t level);
 
   // simulate odometry noise
-  Odometry add_noise(const Odometry& odom);
+  Odometry add_noise(const Odometry& odom) const;
 
   // simulated controller noise
-  Twist add_noise(const Twist& cmd);
+  Twist add_noise(const Twist& cmd) const;
 
   // publish command velocity
-  void publish(const Twist& twist);
+  void publish(const Twist& twist) const;
 
   // shared options structure
   std::shared_ptr<MPPIOptionsConfig> opts_;
@@ -108,6 +109,10 @@ class MPPIServer
 
   // latest odometry estimate
   std::optional<Odometry> current_odometry_;
+
+  // objects used to simulate noisy odometry / commands
+  mutable std::mt19937 random_generator_;
+  mutable std::normal_distribution<float> random_xy_, random_cmd_;
 
 };
 
