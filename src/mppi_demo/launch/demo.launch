@@ -25,7 +25,8 @@
         required="true" args="-d $(find mppi_demo)/config/$(arg namespace).rviz"/>
 
   <!-- bag, if requested -->
-  <node if="$(arg bag)" name="rosbag_record" type="record" pkg="rosbag"
-        args="-O $(arg bag_target) -a" />
+  <node if="$(arg bag)" name="rosbag_record" type="record" pkg="rosbag" args="-O $(arg bag_target)
+    /tf /tf_static /clock /jackal/cmd_vel /jackal/odom /jackal/follow_course/* /jackal/waypoint/*
+    /jackal/mppi_controller/parameter_descriptions /jackal/mppi_controller/parameter_updates" />
 
 </launch>
