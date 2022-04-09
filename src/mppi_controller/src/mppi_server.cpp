@@ -10,7 +10,8 @@ namespace mppi
 
 MPPIServer::MPPIServer(ros::NodeHandle nh)
   : opts_(std::make_shared<MPPIOptionsConfig>()),
-    waypoint_server_(nh, "waypoint", boost::bind(&MPPIServer::execute, this, _1), false)
+    waypoint_server_(nh, "waypoint", boost::bind(&MPPIServer::executeWP, this, _1), false),
+    follow_course_server_(nh, "follow_course", boost::bind(&MPPIServer::executeFC, this, _1), false)
 {
   ROS_INFO_NAMED("MPPIServer", "Controller instantiated, bringing up server...");
 
@@ -47,8 +48,9 @@ MPPIServer::MPPIServer(ros::NodeHandle nh)
       break;
 
   // initialize and start action server
-  ROS_INFO_NAMED("MPPIServer", "Starting action server.");
+  ROS_INFO_NAMED("MPPIServer", "Starting action servers.");
   waypoint_server_.start();
+  follow_course_server_.start();
 
   ROS_INFO_NAMED("MPPIServer", "MPPI server instantiated. Ready to execute goals.");
 }
@@ -91,7 +93,7 @@ void MPPIServer::publish(const Twist& twist)
   }
 }
 
-void MPPIServer::execute(const WaypointGoal::ConstPtr& goal)
+void MPPIServer::executeWP(const WaypointGoal::ConstPtr& goal)
 {
   ROS_INFO_NAMED("MPPIServer", "Received Waypoint goal!");
 
@@ -166,6 +168,63 @@ void MPPIServer::execute(const WaypointGoal::ConstPtr& goal)
     waypoint_server_.setSucceeded(result);
 }
 
+void MPPIServer::executeFC(const FollowCourseGoal::ConstPtr& goal)
+{
+  ROS_INFO_NAMED("MPPIServer", "Received FollowCourse goal!");
 
+  // perform sanity checks
+  assert(current_odometry_ && "No odometry information found. Can't execute goal.");
+  if (goal->duration <= 0)
+  {
+    ROS_ERROR_NAMED("MPPIServer", "Received invalid goal; duration must be greater than zero.");
+    follow_course_server_.setAborted();
+    return;
+  }
+
+  // plan until time's up
+  bool success = true;
+  ros::Time start_time = ros::Time::now();
+  ROS_INFO_NAMED("MPPIServer", "Beginning planning loop...");
+  while (ros::ok() && (ros::Time::now() - start_time).toSec() < goal->duration)
+  {
+    // begin loop timing
+    ros::Time loop_time = ros::Time::now();
+
+    // make a copy of current odometry
+    Odometry odom;
+    {
+      std::unique_lock<std::mutex> lock(mutex_);
+      odom = *current_odometry_;
+    }
+
+    // check if we've been preempted
+    if (follow_course_server_.isPreemptRequested())
+    {
+      ROS_INFO_NAMED("MPPIServer", "Preempted!");
+      success = false;
+      break;
+    }
+
+    // if we've made it this far we want to continue planning
+    publish(add_noise(controller_->plan(add_noise(odom))));
+
+    // sleep for the appropriate duration
+    if (ros::Duration delta = (ros::Time::now() - loop_time); delta >= ros::Duration(opts_->dt))
+      // we took too long planning... this is very bad
+      ROS_WARN_THROTTLE_NAMED(5, "MPPIServer", "Planning takes longer than required loop rate!");
+    else
+      // sleep for remainder of loop
+      // @TODO use something better than ros::Time for this?
+      (ros::Duration(opts_->dt) - delta).sleep();
+  }
+
+  // always send a stop command and clear the controller before exiting
+  controller_->clear();
+  publish(Twist());
+
+  // we are pretty much always successful, unless preempted
+  if (success)
+    follow_course_server_.setSucceeded();
+}
 
 } // namespace mppi

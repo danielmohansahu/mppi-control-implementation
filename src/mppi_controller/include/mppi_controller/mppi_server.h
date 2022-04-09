@@ -4,6 +4,9 @@
  *
  * This implements action servers around MPPI
  * to support various goal execution procedures.
+ *
+ * @TODO add protection from concurrent calls
+ * to different action servers
  */
 
 // STL
@@ -18,6 +21,7 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <mppi_controller/MPPIOptionsConfig.h>
 #include <mppi_controller/WaypointAction.h>
+#include <mppi_controller/FollowCourseAction.h>
 
 // custom
 #include <mppi_controller/forward_model.h>
@@ -40,15 +44,19 @@ class MPPIServer
 {
  public:
   // convenience typedefs
-  using Twist             = geometry_msgs::Twist;
-  using TwistStamped      = geometry_msgs::TwistStamped;
-  using PoseStamped       = geometry_msgs::PoseStamped;
-  using Odometry          = nav_msgs::Odometry;
-  using MPPIOptionsConfig = mppi_controller::MPPIOptionsConfig;
-  using WaypointAction    = mppi_controller::WaypointAction;
-  using WaypointGoal      = mppi_controller::WaypointGoal;
-  using WaypointResult    = mppi_controller::WaypointResult;
-  using WaypointFeedback  = mppi_controller::WaypointFeedback;
+  using Twist                 = geometry_msgs::Twist;
+  using TwistStamped          = geometry_msgs::TwistStamped;
+  using PoseStamped           = geometry_msgs::PoseStamped;
+  using Odometry              = nav_msgs::Odometry;
+  using MPPIOptionsConfig     = mppi_controller::MPPIOptionsConfig;
+  using WaypointAction        = mppi_controller::WaypointAction;
+  using WaypointGoal          = mppi_controller::WaypointGoal;
+  using WaypointResult        = mppi_controller::WaypointResult;
+  using WaypointFeedback      = mppi_controller::WaypointFeedback;
+  using FollowCourseAction    = mppi_controller::FollowCourseAction;
+  using FollowCourseGoal      = mppi_controller::FollowCourseGoal;
+  using FollowCourseResult    = mppi_controller::FollowCourseResult;
+  using FollowCourseFeedback  = mppi_controller::FollowCourseFeedback;
 
   // expected constructor
   MPPIServer(ros::NodeHandle nh);
@@ -56,7 +64,10 @@ class MPPIServer
  private:
   
   // execution callback for Waypoint based goals
-  void execute(const WaypointGoal::ConstPtr& goal);
+  void executeWP(const WaypointGoal::ConstPtr& goal);
+
+  // execution callback for FollowCourse based goals
+  void executeFC(const FollowCourseGoal::ConstPtr& goal);
 
   // dynamic reconfigure callback
   void reconfigure_callback(MPPIOptionsConfig opts, uint32_t);
@@ -84,6 +95,9 @@ class MPPIServer
 
   // waypoint action server
   actionlib::SimpleActionServer<WaypointAction> waypoint_server_;
+
+  // follow course action server
+  actionlib::SimpleActionServer<FollowCourseAction> follow_course_server_;
 
   // dynamic reconfigure server
   dynamic_reconfigure::Server<MPPIOptionsConfig> reconfigure_server_;

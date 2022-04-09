@@ -86,7 +86,6 @@ class MPPI
 
   // current control sequence and corresponding expected trajectory
   std::optional<Matrix> optimal_control_;
-  std::optional<Matrix> optimal_trajectory_;
 
   // random number generation
   mutable std::mt19937 random_generator_;
