@@ -12,7 +12,6 @@ import argparse
 import rospy
 import actionlib
 from mppi_controller.msg import FollowCourseAction, FollowCourseGoal
-from geometry_msgs.msg import PoseStamped
 from visualization_msgs.msg import Marker
 
 def parse_args():
@@ -43,21 +42,9 @@ def random_if_none(x):
         return x
     return random.uniform(4.5, 6.5)
 
-if __name__ == "__main__":
-    # initialize node
-    rospy.init_node("follow_course")
-
-    # parse input arguments
-    args = parse_args()
-
-    # create action client
-    client = actionlib.SimpleActionClient(args.server_name, FollowCourseAction)
-    rospy.loginfo("Waiting (indefinitely) for action server {}".format(args.server_name))
-    client.wait_for_server()
-
-    # create publisher for marker
-    marker_pub = rospy.Publisher(args.marker_topic, Marker, queue_size=1, latch=True)
-
+def follow(args, client, pub):
+    """ Core logic for sending a single course goal.
+    """
     # create goal
     goal = FollowCourseGoal()
     goal.major = random_if_none(args.x)
@@ -80,10 +67,31 @@ if __name__ == "__main__":
 
     rospy.loginfo("Sending goal: \n{}".format(goal))
     client.send_goal(goal)
-    marker_pub.publish(marker)
+    pub.publish(marker)
 
     # wait for success (or failure)
     client.wait_for_result()
     rospy.loginfo("Server succeeded! (I think)")
+
+    # is there a way to verify failure?
+    return True
+
+if __name__ == "__main__":
+    # initialize node
+    rospy.init_node("follow_course")
+
+    # parse input arguments
+    args = parse_args()
+
+    # create action client
+    client = actionlib.SimpleActionClient(args.server_name, FollowCourseAction)
+    rospy.loginfo("Waiting (indefinitely) for action server {}".format(args.server_name))
+    client.wait_for_server()
+
+    # create publisher for marker
+    marker_pub = rospy.Publisher(args.marker_topic, Marker, queue_size=1, latch=True)
+
+    # send and track goal
+    follow(args, client, marker_pub)
 
     # and, we're done
