@@ -58,7 +58,7 @@ if __name__ == "__main__":
     print("Extracting data from {} bags found in \n{}.".format(len(bags), args.directory))
     error_count = 0
     for bag in tqdm(bags):
-        if not extractor.extract(bag):
+        if not extractor.to_csv(bag):
             error_count += 1
 
     print("Finished data extraction! {}/{} successful.".format(len(bags) - error_count, len(bags)))

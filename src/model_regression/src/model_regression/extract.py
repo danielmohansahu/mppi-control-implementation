@@ -11,6 +11,7 @@ the driving independent variables.
 import os
 import csv
 from collections import OrderedDict
+from dataclasses import dataclass
 
 # ROS
 import rosbag
@@ -18,7 +19,19 @@ import rosbag
 class Extractor:
     """ Object Oriented class for extracting parameters + costs from a given bag.
     """
-    def __init__(self, params_topic, goal_topic, result_topic, odom_topic, cmd_topic, output, cost_function):
+
+    @dataclass
+    class Results:
+        """ Convenience class to output results.
+        """
+        params: ...         # state of all parameters
+        goal: ...           # goal of this run
+        result: ...         # results of this run
+        odom: list          # list of odometry messages
+        cmd: list           # list of control messages
+        cost: float = 0     # estimated cost
+
+    def __init__(self, params_topic, goal_topic, result_topic, odom_topic, cmd_topic, cost_function, output=None):
         # expected topics for param / cost extraction
         self.topics = {
             "params": params_topic,
@@ -33,13 +46,14 @@ class Extractor:
 
         # initialize output file
         self.output = output
-        if os.path.exists(output):
-            print("Overriding existing output file '{}'".format(output))
-        with open(output, "w") as csvfile:
-            pass
+        if output is not None:
+            if os.path.exists(output):
+                print("Overriding existing output file '{}'".format(output))
+            with open(output, "w") as csvfile:
+                pass
 
     def extract(self, filepath):
-        """ Extract relevant data from the given bag file and write to output (CSV).
+        """ Extract relevant data from the given bag file.
         """
 
         # perform sanity checks on bag
@@ -84,30 +98,45 @@ class Extractor:
         unsorted_params.sort()
         params = OrderedDict({k:v for k,v in unsorted_params})
 
+        # initialize Results data
+        res = self.Results(
+            params=params,
+            goal=data["goal"][0],
+            result=data["result"][0],
+            odom=data["odom"],
+            cmd=data["cmd"])
+
         # get total cost from the other topics
-        cost = self.cost_function(goal=data["goal"][0], result=data["result"][0], odom=data["odom"], cmd=data["cmd"])
+        res.cost = self.cost_function(res.goal, res.result, res.odom, res.cmd)
 
-        # write to file
-        self.write(filepath.split("/")[-1], params, cost)
+        # return collected information
+        return res
 
-        # indicate success
-        return True
-
-    def write(self, filename, params, cost):
-        """ Write a new line to the given output file.
+    def to_csv(self, filepath):
+        """ Wrapper script to extract data and write to a CSV
 
         We assume the given params are in the correct order.
         """
-        first_time = os.path.getsize(self.output) == 0
+        if self.output is None:
+            raise RuntimeError("Call to 'to_csv' for an Extractor class with no specified 'output' file!")
 
+        # extract data
+        results = extract(filepath)
+
+        # sanity check we succeeded
+        if not results:
+            return False
+
+        # if we got this far we have good data; write
+        first_time = os.path.getsize(self.output) == 0
         with open(self.output, "a") as csvfile:
             writer = csv.writer(csvfile, delimiter=",")
 
             # write header iff this is our first line
             if first_time:
-                header = ["filename"] + list(params.keys()) + ["cost"]
+                header = ["filename"] + list(res.params.keys()) + ["cost"]
                 writer.writerow(header)
 
-            writer.writerow([filename] + list(params.values()) + [cost])
+            writer.writerow([filepath.split("/")[-1]] + list(res.params.values()) + [res.cost])
 
 
