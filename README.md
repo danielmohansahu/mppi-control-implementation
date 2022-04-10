@@ -17,6 +17,8 @@ xhost +si:localuser:root
 ./build_and_run.sh
 ```
 
+#### Baseline System
+
 Once within the Docker container one can launch our demonstration simulation via:
 
 ```bash
@@ -45,6 +47,43 @@ Examples of each of the above demos executing for the nominal (read: untuned) sy
 Waypoint Goal | Follow Course Goal
 --- | ---
 ![](docs/waypoint_goals.gif) | ![](docs/course_following.gif)
+
+
+#### Learning a Forward Model
+
+The baseline system performance is sub-optimal, for a number of reasons. We just assumed a simplified geometric slip-steer model with hard-coded parameters like "wheel radius" that may not match the true (simulated) values. We also assume there's no slip. In this section we demonstrate how to learn these parameters in order to better match the system's performance[^1].
+
+This effort can be broadly broken up into three stages:
+1. Data Collection: Running simulations of the system to collect performance information. In order not to overfit to a specific scenario we introduce some stochasticity in the data collection procedure by varying the courses and simulating odometry and controller noise. We also randomly perturb the main Forward Model parameters which we expect to drive performance and record these.
+2. Data Analysis: Once we have a sufficient (?) number of demonstrations we want to distinguish between "good" and "bad" runs. To this end we define a cost function which penalizes things like "distance from the desired trajectory", "deviation from desired velocity", etc. In this stage we extract all the data and assign costs to each run.
+3. Model Fitting: Now we have a set of information mapping Forward Model parameters to system performance. We can try to fit this to an assumed pattern via Linear Regression. Once we have that model we can try to determine the suite of parameters which will provide the best system performance.
+
+Scripts are provided to perform each of these stages:
+
+```bash
+# Data Collection requires the simulation to be up in the background
+roslaunch mppi_demo demo.launch
+
+# in a separate terminal start the data collection process
+rosrun mppi_demo collect_course.py
+
+# this will continually send new goals to the robot and collect data until it is manually shut down
+```
+
+```bash
+# Data Analysis assumes a decent number of runs have been executed and collected
+#  note that the simulator doesn't need to be running anymore
+rosrun model_regression extract.py
+```
+
+```bash
+# Model Fitting can be performed once all the data has been collected
+rosrun model_regression fit.py
+
+# This script will print out the optimized parameters once completed
+```
+
+[^1]: There are plenty of other issues that affect system performance, like controller timing, sampling stochasticity, vehicle constraints, bugs in my code, etc. We ignore these to focus on the more manageable problem of better forward modeling.
 
 ## Theory
 
