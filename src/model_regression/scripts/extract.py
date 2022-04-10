@@ -56,12 +56,15 @@ if __name__ == "__main__":
     bags.sort()
 
     print("Extracting data from {} bags found in \n{}.".format(len(bags), args.directory))
-    error_count = 0
+    errors = []
     for bag in tqdm(bags):
         if not extractor.to_csv(bag):
-            error_count += 1
+            errors.append(bag.split("/")[-1])
 
-    print("Finished data extraction! {}/{} successful.".format(len(bags) - error_count, len(bags)))
+    print("Finished data extraction! {}/{} successful.".format(len(bags) - len(errors), len(bags)))
+    if len(errors) != 0:
+        print("Had trouble with the following:\n\t" + "\n\t".join(errors))
+
 
 
 
