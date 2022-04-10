@@ -43,7 +43,8 @@ class Ellipse():
         # non-origin or cardinal axis point
         t = optimize.root(self.construct_F(x, y), [0])
         if not t.success:
-            print("Unable to solve for closest point to ({},{}): \n\t{}".format(x, y, t.message))
+            print("Unable to solve for closest point to ({},{}), ignoring. \nError: {}".format(x, y, t.message))
+            return (x,y)
         # calculate closest point
         x0 = self.major * self.major * x / (self.major ** 2.0 - t.x)
         y0 = self.minor * self.minor * y / (self.minor ** 2.0 - t.x)
@@ -67,15 +68,11 @@ def cost_function(goal, result, odom, cmd):
      + control variance (smoothness)
 
     Analysis is bounded by the timestamps between [goal, result]
-
-    @TODO! no timestamp in result struct... bounding by last message for now.
     """
     
     # extract start / end times
-    # @TODO re-enable this logic when the appropriate stamping is done in the bags
-    # Need
-    #  - cmd timestamp
-    #  - ???
+    start = goal.header.stamp
+    end = result.header.stamp
 
     # instantiate helper class
     ellipse = Ellipse(goal.goal.major, goal.goal.minor)
@@ -86,11 +83,20 @@ def cost_function(goal, result, odom, cmd):
     # add in cost associated with deviation from desired trajectory and velocity
     cost = 0.0
     for msg in odom:
+        if msg.header.stamp < start:
+            # message received before goal sent; ignore
+            continue
+        elif msg.header.stamp > end:
+            # we're done; stop
+            break
+        # add cost for position deviation
         cost += ellipse.dist(msg.pose.pose.position.x, msg.pose.pose.position.y)
+        # add cost for velocity deviation
         cost += abs(goal.goal.velocity - msg.twist.twist.linear.x)
     cumulative_cost += cost / len(odom)
 
     # add in controller stddev cost
+    #  note that we don't restrict timestamps here; hopefully not a big deal?
     cumulative_cost += statistics.stdev([msg.linear.x for msg in cmd])
     cumulative_cost += statistics.stdev([msg.angular.z for msg in cmd])
 
