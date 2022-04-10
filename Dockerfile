@@ -43,6 +43,7 @@ RUN pip install \
       matplotlib \
       pandas \
       seaborn \
+      scikit-optimize \
       sklearn
 
 # default drop into a byobu shell in expected mounting directory
