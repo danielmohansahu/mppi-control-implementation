@@ -139,4 +139,7 @@ class Extractor:
 
             writer.writerow([filepath.split("/")[-1]] + list(res.params.values()) + [res.cost])
 
+        # indicate success
+        return True
+
 
