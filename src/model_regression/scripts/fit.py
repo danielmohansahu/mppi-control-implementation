@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 
 # Data Science
 import pandas
+import numpy as np
+from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn import metrics, model_selection
@@ -35,8 +37,8 @@ def parse_args():
     args,_ = parser.parse_known_args()
     return args
 
-def fit_linear_model(df, features = INDEPENDENT_VARS, target = DEPENDENT_VAR, evaluate = True):
-    """ Attempt to fit a linear model to the given data.
+def fit_model(df, features = INDEPENDENT_VARS, target = DEPENDENT_VAR, evaluate = True):
+    """ Attempt to fit a model to the given data.
 
     Returns:
         function: A predictive function based on the regressed model.
@@ -44,9 +46,8 @@ def fit_linear_model(df, features = INDEPENDENT_VARS, target = DEPENDENT_VAR, ev
     Great help from:
     https://datagy.io/python-sklearn-linear-regression/
     https://machinelearningmastery.com/model-based-outlier-detection-and-removal-in-python/
+    https://data36.com/polynomial-regression-python-scikit-learn/
     """
-    # initialize model and data
-    model = LinearRegression()
 
     # perform outlier rejection on target variable
     #  @TODO think this through; we could have cost nonlinearities...
@@ -55,8 +56,11 @@ def fit_linear_model(df, features = INDEPENDENT_VARS, target = DEPENDENT_VAR, ev
     yhat = lof.fit_predict( df[[target]] )
     mask = yhat != -1
 
-    # get rid of bad points
-    X = df[features][mask]
+    # initialize model and data
+    poly = PolynomialFeatures(degree=2, include_bias=False)
+    model = LinearRegression()
+    # get rid of bad points and fit to a polynomial
+    X = poly.fit_transform(df[features][mask])
     y = df[target][mask]
 
     # if in evaluation mode, first try to train on a subset of the data
@@ -69,19 +73,16 @@ def fit_linear_model(df, features = INDEPENDENT_VARS, target = DEPENDENT_VAR, ev
 
         # evaluate
         predictions = model.predict(X_test)
-        print("Linear Model Performance:")
+        print("Model Performance:")
         print("\t R2: \t{}".format(metrics.r2_score(y_test, predictions)))
         print("\t RMSE: \t{}".format(metrics.mean_squared_error(y_test, predictions, squared=False)))
-
-    # we want to return a model trained against the full set of data
-    model.fit(X, y)
+    else:
+        # we want to return a model trained against the full set of data
+        model.fit(X, y)
 
     # convert to a predictive function which converts arguments from 'features' into 'target'
     def predict(*args):
-        target = model.intercept_
-        for i,a in enumerate(*args):
-            target += a * model.coef_[i]
-        return target
+        return model.predict(poly.fit_transform(np.array(args).reshape(1,-1)))
     return predict
 
 if __name__ == "__main__":
@@ -98,8 +99,8 @@ if __name__ == "__main__":
     # get the subset of columns we really care about
     df = dataframe_full[ INDEPENDENT_VARS + [DEPENDENT_VAR] ]
 
-    # attempt to fit a linear regression model:
-    function = fit_linear_model(df, INDEPENDENT_VARS, DEPENDENT_VAR)
+    # attempt to fit a regression model:
+    # evaluation mode, for reference
+    _ = fit_model(df, INDEPENDENT_VARS, DEPENDENT_VAR, True)
+    function = fit_model(df, INDEPENDENT_VARS, DEPENDENT_VAR, False)
 
-    import code
-    code.interact(local=locals())
