@@ -38,7 +38,7 @@ RUN apt-get update \
 
 # install needed python packages
 RUN pip install --upgrade pip
-RUN pip install -y \
+RUN pip install \
       tqdm \
       matplotlib \
       pandas \
