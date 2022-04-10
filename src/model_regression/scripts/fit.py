@@ -16,10 +16,14 @@ import matplotlib.pyplot as plt
 # Data Science
 import pandas
 import numpy as np
+import skopt
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn import metrics, model_selection
+
+# Custom
+from mppi_controller.cfg import MPPIOptionsConfig as Options
 
 # nominal location of full extracted data
 DEFAULT_FILENAME = os.path.abspath(os.path.join(__file__, "..", "..", "data", "collated_runs.csv"))
@@ -73,7 +77,7 @@ def fit_model(df, features = INDEPENDENT_VARS, target = DEPENDENT_VAR, evaluate 
 
         # evaluate
         predictions = model.predict(X_test)
-        print("Model Performance:")
+        print("  Model Performance:")
         print("\t R2: \t{}".format(metrics.r2_score(y_test, predictions)))
         print("\t RMSE: \t{}".format(metrics.mean_squared_error(y_test, predictions, squared=False)))
     else:
@@ -82,7 +86,7 @@ def fit_model(df, features = INDEPENDENT_VARS, target = DEPENDENT_VAR, evaluate 
 
     # convert to a predictive function which converts arguments from 'features' into 'target'
     def predict(*args):
-        return model.predict(poly.fit_transform(np.array(args).reshape(1,-1)))
+        return model.predict(poly.fit_transform(np.array(args).reshape(1,-1)))[0]
     return predict
 
 if __name__ == "__main__":
@@ -94,6 +98,7 @@ if __name__ == "__main__":
         raise RuntimeError("Given empty or null data file '{}'. Did you remember to call 'extract'?".format(args.filename))
 
     # load csv w/ pandas
+    print("Loading data from '{}'...".format(args.filename))
     dataframe_full = pandas.read_csv(args.filename)
 
     # get the subset of columns we really care about
@@ -101,6 +106,14 @@ if __name__ == "__main__":
 
     # attempt to fit a regression model:
     # evaluation mode, for reference
+    print("Fitting multivariate Polynomial model...")
     _ = fit_model(df, INDEPENDENT_VARS, DEPENDENT_VAR, True)
     function = fit_model(df, INDEPENDENT_VARS, DEPENDENT_VAR, False)
+
+    # use bayesian optimization to find the "optimal" parameters
+    print("Finding 'optimal' parameters to minimize cost...")
+    bounds = [(Options.min[param], Options.max[param]) for param in INDEPENDENT_VARS]
+    res = skopt.gp_minimize(function, bounds)
+
+    print("Found 'optimal' parameters:\n\t" + "\n\t".join(["{}: {}".format(INDEPENDENT_VARS[i], res.x[i]) for i in range(len(INDEPENDENT_VARS))]))
 
