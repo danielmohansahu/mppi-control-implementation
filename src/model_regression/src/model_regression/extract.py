@@ -121,10 +121,10 @@ class Extractor:
             raise RuntimeError("Call to 'to_csv' for an Extractor class with no specified 'output' file!")
 
         # extract data
-        results = extract(filepath)
+        res = self.extract(filepath)
 
         # sanity check we succeeded
-        if not results:
+        if not res:
             return False
 
         # if we got this far we have good data; write
