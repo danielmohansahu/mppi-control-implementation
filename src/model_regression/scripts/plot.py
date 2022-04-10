@@ -47,7 +47,8 @@ def plot_results(filename, data):
 
     # initialize axes
     fig,axs = plt.subplots(3)
-    fig.suptitle("Results for '{}'\n Cost: {:.2f}".format(filename, data.cost))
+    fig.suptitle("Results for '{}'\n Cost: {:.2f} | Wheel Radius: {:.2f} | Wheel Base: {:.2f} | Slip : ({:.2f}, {:.2f})".format(
+        filename, data.cost, data.params["wheel_radius"], data.params["wheel_separation"], data.params["slip_left"], data.params["slip_right"]))
 
     ### first subplot is XY performance vs. desired trajectory
     
@@ -55,10 +56,16 @@ def plot_results(filename, data):
     axs[0].add_patch(Ellipse((0,0), width=2*data.goal.goal.major, height=2*data.goal.goal.minor, fill=False, label="Desired"))
     # achieved trajectory
     axs[0].plot(X, Y, label="Achieved")
+    axs[0].set_title("Course Performance")
+    axs[0].set_xlabel("X (m)")
+    axs[0].set_ylabel("Y (m)")
 
     ### second subplot is linear velocty vs. desired
     axs[1].plot(T, VX, label="Achieved")
     axs[1].plot([T[0],T[-1]], [data.goal.goal.velocity, data.goal.goal.velocity], "black", label="Desired")
+    axs[1].set_title("Linear Velocity")
+    axs[1].set_xlabel("Time (s)")
+    axs[1].set_ylabel("Vx (m/s)")
 
     ### third subplot is commanded twist / steer
     #@TODO! need timestamps.
