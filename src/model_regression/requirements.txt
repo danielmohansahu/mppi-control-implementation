@@ -2,4 +2,5 @@ tqdm
 matplotlib
 pandas
 sklearn
+scikit-optimize
 seaborn
