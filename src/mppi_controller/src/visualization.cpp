@@ -72,8 +72,8 @@ void visualize(const ros::Publisher& pub,
     for (size_t i = 0; i != steps; ++i)
     {
       geometry_msgs::Point point;
-      point.x = trajectories(STATE_DIM * i, j);
-      point.y = trajectories(STATE_DIM * i + 1, j);
+      point.x = trajectories(STATE_DIM * i + X_IDX, j);
+      point.y = trajectories(STATE_DIM * i + Y_IDX, j);
       marker.points.push_back(point);
     }
 
