@@ -4,32 +4,13 @@
     <static>true</static>
     <link name="link">
       <collision name="collision">
-        <pose>0 0 -28 0 0 0</pose>
+        <pose>0 0 0 0 0 0</pose>
         <geometry>
           <heightmap>
             <use_terrain_paging>false</use_terrain_paging>
-            <texture>
-              <diffuse>materials/textures/dirt_diffusespecular.png</diffuse>
-              <normal>materials/textures/flat_normal.png</normal>
-              <size>10</size>
-            </texture>
-            <texture>
-              <diffuse>materials/textures/grass_diffusespecular.png</diffuse>
-              <normal>materials/textures/flat_normal.png</normal>
-              <size>10</size>
-            </texture>
-            <texture>
-              <diffuse>materials/textures/fungus_diffusespecular.png</diffuse>
-              <normal>materials/textures/flat_normal.png</normal>
-              <size>10</size>
-            </texture>
             <blend>
               <min_height>28</min_height>
               <fade_dist>6</fade_dist>
-            </blend>
-            <blend>
-              <min_height>35</min_height>
-              <fade_dist>18</fade_dist>
             </blend>
             <uri>materials/textures/fortress_heightmap.png</uri>
             <size>257 257 50</size>
@@ -60,13 +41,9 @@
               <min_height>28</min_height>
               <fade_dist>6</fade_dist>
             </blend>
-            <blend>
-              <min_height>35</min_height>
-              <fade_dist>18</fade_dist>
-            </blend>
             <uri>materials/textures/fortress_heightmap.png</uri>
             <size>257 257 50</size>
-            <pos>0 0 -28</pos>
+            <pos>0 0 0</pos>
           </heightmap>
         </geometry>
       </visual>
