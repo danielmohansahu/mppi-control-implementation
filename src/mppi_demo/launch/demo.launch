@@ -2,7 +2,7 @@
 <!-- launch simulation-based demonstration of MPPI controller -->
 <launch>
   <arg name="namespace" default="jackal" />
-  <arg name="world" default="empty" doc="Gazebo world to spawn."/>
+  <arg name="world" default="valley" doc="Gazebo world to spawn."/>
 
   <!-- bag record arguments -->
   <arg name="bag" default="false" doc="Bag data from this run for analysis." />
