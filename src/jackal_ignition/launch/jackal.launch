@@ -5,14 +5,14 @@
 
   <!-- tell ignition where to find stuff -->
   <env name="IGN_GAZEBO_SYSTEM_PLUGIN_PATH" value="$(optenv LD_LIBRARY_PATH)" />
-  <env name="IGN_GAZEBO_RESOURCE_PATH" value="$(optenv IGN_GAZEBO_RESOURCE_PATH):$(find jackal_description)/.." />
+  <env name="IGN_GAZEBO_RESOURCE_PATH" value="$(optenv IGN_GAZEBO_RESOURCE_PATH):$(find jackal_description)/..:$(find jackal_ignition)/models" />
 
   <!-- indicate we need to use simulation time -->
   <param name="use_sim_time" value="true" />
 
   <!-- Spawn world -->
   <include file="$(find ros_ign_gazebo)/launch/ign_gazebo.launch">
-    <arg name="ign_args" value="-r -v 3 $(arg world).sdf"/>
+    <arg name="ign_args" value="-r -v 3 $(arg world).sdf --render-engine ogre"/>
   </include>
 
   <!-- generate Jackal's URDF as a robot_description -->
