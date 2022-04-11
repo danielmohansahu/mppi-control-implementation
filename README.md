@@ -103,5 +103,6 @@ Some open source projects and other links which were very helpful:
 
  - [GaTech AutoRally](https://github.com/AutoRally/autorally) provides an implementation of MPPI for a scaled racecar.
  - [bostoncleek's MPPI Implementation](https://github.com/bostoncleek/ROS-Turtlebot-Navigation/tree/master/controller) provides another example implementation of MPPI.
+ - [OSRF SubT Virtual Competition Software](https://github.com/osrf/subt) provides examples of how to use Ignition Gazebo.
 
 
