@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="fortress_heightmap">
+  <world name="valley">
 
     <physics name="1ms" type="ode">
       <max_step_size>0.004</max_step_size>
@@ -11,7 +11,7 @@
       <ambient>0.1 0.1 0.1 1.0</ambient>
       <background>0 0 0 1.0</background>
       <grid>false</grid>
-      <origin_visual>false</origin_visual>
+      <origin_visual>true</origin_visual>
     </scene>
 
     <gui fullscreen="0" >
@@ -51,7 +51,11 @@
       <static>true</static>
       <name>fortress_heightmap</name>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap</uri>
+      <uri>model://heightmap.sdf</uri>
+      <!-- 
+        Heightmap is modified from:
+        https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap
+      -->
     </include>
     
   </world>
