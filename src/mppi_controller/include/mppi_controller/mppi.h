@@ -25,6 +25,7 @@
 #include "types.h"
 #include "forward_model.h"
 #include "visualization.h"
+#include "goal_evaluators.h"
 
 namespace mppi
 {
@@ -71,16 +72,10 @@ class MPPI
   //  we expect this to be called at the control loop rate, e.g. 50Hz
   geometry_msgs::Twist plan(const nav_msgs::Odometry& state);
 
-  // enumeration of supported goal types
-  enum GoalTypes { UNSET, WAYPOINT, FOLLOWCOURSE };
-
  private:
 
   // generate a set of potential trajectories from the given pose
   Matrix sample() const;
-
-  // evaluate the cost of the given trajectory
-  float cost(const Eigen::Ref<Matrix> trajectory) const;
 
   // select the best next trajectory
   Matrix evaluate(const Eigen::Ref<Statef> state, const nav_msgs::Odometry& pose) const;
@@ -92,8 +87,7 @@ class MPPI
   const std::shared_ptr<Options> options_;
 
   // current goal variables
-  GoalTypes goal_type_;
-  std::variant<std::monostate, WaypointGoal, FollowCourseGoal> goal_;
+  std::variant<std::monostate, std::unique_ptr<const WaypointEvaluator>, std::unique_ptr<const FollowCourseEvaluator>> goal_evaluator_;
 
   // current control sequence and corresponding expected trajectory
   std::optional<Matrix> optimal_control_;

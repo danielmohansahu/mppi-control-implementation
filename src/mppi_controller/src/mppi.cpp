@@ -11,7 +11,6 @@ namespace mppi
 MPPI::MPPI(const std::shared_ptr<ForwardModel> model, ros::NodeHandle& nh, const std::shared_ptr<Options> options)
  : model_(model),
    options_(options),
-   goal_type_(GoalTypes::UNSET),
    random_generator_(std::random_device{}()),
    random_distribution_(0.0, options_->std)
 {
@@ -28,9 +27,8 @@ void MPPI::setGoal(const WaypointGoal& goal)
   // clear any existing goals
   clear();
 
-  // construct new goal
-  goal_ = goal;
-  goal_type_ = GoalTypes::WAYPOINT;
+  // construct new goal evaluator
+  goal_evaluator_ = std::make_unique<WaypointEvaluator>(goal, options_);
 }
 
 void MPPI::setGoal(const FollowCourseGoal& goal)
@@ -40,9 +38,8 @@ void MPPI::setGoal(const FollowCourseGoal& goal)
   // clear any existing goals
   clear();
 
-  // construct new goal
-  goal_ = goal;
-  goal_type_ = GoalTypes::FOLLOWCOURSE;
+  // construct new goal evaluator
+  goal_evaluator_ = std::make_unique<FollowCourseEvaluator>(goal, options_);
 }
 
 void MPPI::clear()
@@ -50,8 +47,7 @@ void MPPI::clear()
   ROS_INFO_NAMED("MPPI", "Clearing any extant plans.");
 
   // set class variables back to defaults
-  goal_ = std::monostate();
-  goal_type_ = GoalTypes::UNSET;
+  goal_evaluator_ = std::monostate();
   optimal_control_ = std::nullopt;
   last_plan_call_ = std::nullopt;
 
@@ -66,7 +62,7 @@ geometry_msgs::Twist MPPI::plan(const nav_msgs::Odometry& state)
   assert(state.header.frame_id == options_->frame_id && "Received unexpected frame_id in state.");
 
   // if we don't have a goal command 0 velocity
-  if (goal_type_ == GoalTypes::UNSET)
+  if (std::holds_alternative<std::monostate>(goal_evaluator_))
     return geometry_msgs::Twist();
 
   // sanity check planning rate, and warn if we're going unexpectedly fast / slow
@@ -140,60 +136,6 @@ Matrix MPPI::sample() const
   return commands;
 }
 
-float MPPI::cost(const Eigen::Ref<Matrix> trajectory) const
-{
-  // return the cost of the given trajectory
-
-  // sanity checks
-  assert(goal_type_ != GoalTypes::UNSET && "Can't determine the cost of a given trajectory without a goal!");
-  assert(trajectory.cols() == 1 && "Trajectory needs to be a vector, not matrix.");
-  assert(trajectory.rows() % STATE_DIM == 0 && "Trajectory matrix has invalid dimensions.");
-  const size_t steps = (trajectory.rows() / STATE_DIM);
-
-  // minimum viable example: punish deviance from desired position and velocity
-  float cumulative = 0;
-  for (size_t i = 0; i != steps; ++i)
-  {
-    // get expected state variables
-    const auto x = trajectory(STATE_DIM * i, 0);
-    const auto y = trajectory(STATE_DIM * i + 1, 0);
-    const auto dx = trajectory(STATE_DIM * i + 3, 0);
-    const auto dtheta = trajectory(STATE_DIM * i + 4, 0);
-
-    // add deviance from desired goal
-    // @TODO clean this up w/ std::visit
-    float euclidean_dist = 0;
-    float desired_vel = 0;
-    switch (goal_type_)
-    {
-      case GoalTypes::WAYPOINT:
-      {
-        const auto& pos = std::get<WaypointGoal>(goal_).pose.pose.position;
-        euclidean_dist = std::sqrt( std::pow(pos.x - x, 2.0) + std::pow(pos.y - y, 2.0) );
-        desired_vel = std::get<WaypointGoal>(goal_).velocity;
-        break;
-      }
-      case GoalTypes::FOLLOWCOURSE:
-      {
-        const auto& g = std::get<FollowCourseGoal>(goal_);
-        euclidean_dist = std::abs(1 - std::pow(x, 2.0) / std::pow(g.major, 2.0) - std::pow(y, 2.0) / std::pow(g.minor, 2.0));
-        desired_vel = std::get<FollowCourseGoal>(goal_).velocity;
-        break;
-      }
-      default: throw std::runtime_error("Reached unreachable code.");
-    }
-    cumulative += options_->weight_dist * euclidean_dist;
-
-    // add deviance from desired velocity
-    cumulative += options_->weight_vel * std::abs(dx - desired_vel);
-
-    // penalize rotation
-    cumulative += options_->weight_omega * std::abs(dtheta);
-  }
-
-  return cumulative;
-}
-
 Matrix MPPI::evaluate(const Eigen::Ref<Statef> state, const nav_msgs::Odometry& pose) const
 {
   // determine the next best trajectory from the given pose
@@ -207,34 +149,24 @@ Matrix MPPI::evaluate(const Eigen::Ref<Statef> state, const nav_msgs::Odometry& 
   // get expected state of each command
   Matrix potentials = model_->rollout(state, commands);
 
-  // track costs of each trajectory, for debugging
+  // get the best (lowest cost) trajectory
   std::vector<float> costs;
-  costs.reserve(potentials.cols());
+  size_t best_index;
+  std::visit(
+      [this, &best_index, &costs, &potentials] (auto&& evaluator) -> void
+      { 
+        using T = std::decay_t<decltype(evaluator)>;
+        if constexpr (!std::is_same_v<T, std::monostate>)
+          std::tie(best_index, costs) = evaluator->cost(potentials);
+      }, goal_evaluator_);
 
-  // find the lowest cost trajectory of the bunch
-  float best_cost = std::numeric_limits<float>::max();
-  size_t index = std::numeric_limits<size_t>::max();
-  for (auto j = 0; j != potentials.cols(); ++j)
-  {
-    float c = cost(potentials.col(j));
-    if (c < best_cost)
-    {
-      best_cost = c;
-      index = j;
-    }
-    costs.push_back(c);
-  }
-  
   // sanity check that we got something
-  assert(best_cost < std::numeric_limits<float>::max() && "Failed to get a valid plan.");
-
-  ROS_DEBUG("Found next trajectory.");
-  Matrix command = commands.col(index);
+  assert(costs[best_index] < std::numeric_limits<float>::max() && "Failed to get a valid plan.");
 
   // publish debugging information
-  visualize(debug_pub_, potentials, costs, pose, index);
+  visualize(debug_pub_, potentials, costs, pose, best_index);
 
-  return command;
+  return potentials.col(best_index);
 }
 
 } // namespace mppi
