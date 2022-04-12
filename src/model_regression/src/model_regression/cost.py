@@ -7,9 +7,6 @@ Defines a cost function for evaluating the performance of a given bagged run.
 import math
 import statistics
 
-# SCIPY
-from scipy import optimize
-
 class Ellipse():
     """ Convenience class to calculate deviance from desired trajectory.
     """
