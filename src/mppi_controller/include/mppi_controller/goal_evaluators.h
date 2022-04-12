@@ -11,6 +11,7 @@
 #include <tuple>
 #include <vector>
 #include <limits>
+#include <math.h>
 
 // Eigen
 #include <eigen3/Eigen/Core>
@@ -73,7 +74,7 @@ class FollowCourseEvaluator
     {}
 
     // return the euclidean distance to the closest point on the ellipse
-    float dist(float x, float y) const;
+    float dist(float x0, float y0) const;
   };
 
  public:

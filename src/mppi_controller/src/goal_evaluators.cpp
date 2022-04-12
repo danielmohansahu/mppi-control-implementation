@@ -116,12 +116,46 @@ FollowCourseEvaluator::cost(const Eigen::Ref<Matrix> trajectories) const
   return {best_indx, costs};
 }
 
-float FollowCourseEvaluator::Ellipse::dist(float x, float y) const
+float FollowCourseEvaluator::Ellipse::dist(float x0, float y0) const
 {
-  // @TODO fix this! it's not distance!
-  return std::abs(1 - std::pow(x, 2.0) / std::pow(major_, 2.0) - std::pow(y, 2.0) / std::pow(minor_, 2.0));
+  // adapted from:
+  // https://stackoverflow.com/questions/22959698/distance-from-given-point-to-given-ellipse
+
+  // exploit the symmetry of this problem to only consider the first quadrant
+  x0 = std::abs(x0);
+  y0 = std::abs(y0);
+
+  // seed initial guesses
+  float tx = 0.707;
+  float ty = 0.707;
+
+  for (auto i = 0; i != 3; ++i)
+  {
+    // current best guess of closest point
+    const float x = major_ * tx;
+    const float y = minor_ * ty;
+
+    const float ex = (major_ * major_ - minor_ * minor_) * std::pow(tx, 3) / major_;
+    const float ey = (minor_ * minor_ - major_ * major_) * std::pow(ty, 3) / minor_;
+
+    float r = std::hypot(y - ey, x - ex);
+    float q = std::hypot(y0 - ey, x0 - ex);
+
+    tx = std::min(1.f, std::max(0.f, ( (x0 - ex) * r / q + ex) / major_));
+    ty = std::min(1.f, std::max(0.f, ( (y0 - ey) * r / q + ey) / minor_));
+    float t = std::hypot(ty, tx);
+    tx /= t;
+    ty /= t;
+  }
+
+  // final resulting closest point
+  float xc = major_ * tx;
+  float yc = minor_ * ty;
+
+  // return euclidean distance
+  const float res = std::sqrt( std::pow(x0 - xc, 2.0) + std::pow(y0 - yc, 2.0) );
+  ROS_DEBUG_STREAM("(" << x0 << "," << y0 << ") -> (" << xc << "," << yc << "): " << res);
+  return res;
 }
-
-
 
 } // namespace mppi
