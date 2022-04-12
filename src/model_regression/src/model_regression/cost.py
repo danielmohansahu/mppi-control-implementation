@@ -17,47 +17,40 @@ class Ellipse():
         self.major = major
         self.minor = minor
 
-    def dist(self, x, y):
+    def dist(self, x0, y0):
         """ Return euclidean distance from self.
+
+        Taken from this very helpful Issue:
+        https://github.com/0xfaded/ellipse_demo/issues/1
         """
         # exploit symmetry to consider one quadrant
-        x, y = abs(x), abs(y)
-        x0, y0 = self.closest_point(x, y)
-        return math.sqrt( (x - x0) ** 2.0 + (y - y0) ** 2.0 )
+        x0, y0 = abs(x0), abs(y0)
 
-    def closest_point(self, x, y):
-        """ Find the closest point on the ellipse.
-        
-        Notes:
-            Assumes (X,Y) are non-negative
-            Ignoring issues with small numbers by assuming  << X, Y ~= 0
-            Assumes center is (0,0)
+        # initialize first guesses
+        tx,ty = 0.707,0.707
 
-        https://math.stackexchange.com/questions/90974/calculating-distance-of-a-point-from-an-ellipse-border
-        """
-        # handle edge cases
-        if x < 1e-3 and y < 1e-3:
-            # we're on the origin; return closest
-            return (self.major, 0) if (self.major < self.minor) else (0, self.minor)
+        for i in range(3):
+            x = self.major * tx
+            y = self.minor * ty
 
-        # non-origin or cardinal axis point
-        t = optimize.root(self.construct_F(x, y), [0])
-        if not t.success:
-            print("Unable to solve for closest point to ({},{}), ignoring. \nError: {}".format(x, y, t.message))
-            return (x,y)
-        # calculate closest point
-        x0 = self.major * self.major * x / (self.major ** 2.0 - t.x)
-        y0 = self.minor * self.minor * y / (self.minor ** 2.0 - t.x)
-        return (x0, y0)
+            ex = (self.major**2 - self.minor**2) * tx**3 / self.major
+            ey = (self.minor**2 - self.major**2) * ty**3 / self.minor
 
-    def construct_F(self, x, y):
-        """ Construct optimizable function. We want the root.
+            r = math.hypot(x - ex, y - ey)
+            q = math.hypot(x0 - ex, y0 - ey)
 
-        https://math.stackexchange.com/questions/90974/calculating-distance-of-a-point-from-an-ellipse-border
-        """
-        m, n = self.major, self.minor
-        F = lambda t: ( (m * x * (n ** 2.0 - t)) ** 2.0 + (n * y * (m ** 2.0 - t)) ** 2.0 - ((m ** 2.0 - t) * (n ** 2.0 - t)) ** 2.0 )
-        return F
+            tx = min(1, max(0, ( (x0 - ex) * r / q + ex) / self.major))
+            ty = min(1, max(0, ( (y0 - ey) * r / q + ey) / self.minor))
+            t = math.hypot(tx, ty)
+            tx /= t 
+            ty /= t 
+
+        #  best guesstimate
+        xc = self.major * tx
+        yc = self.minor * ty
+
+        # return the estimated distance
+        return math.sqrt( (xc - x0) ** 2.0 + (yc - y0) ** 2.0 )
 
 def cost_function(goal, result, odom, cmd):
     """ Apply known heuristics to assign cost to the given run."
