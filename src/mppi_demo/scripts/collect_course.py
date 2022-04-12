@@ -18,8 +18,12 @@ import os
 import random
 import signal
 import subprocess
+import argparse
 from datetime import datetime
 from contextlib import contextmanager
+
+# GIT
+import git
 
 # ROS
 import rospy
@@ -31,17 +35,45 @@ from mppi_controller.msg import FollowCourseAction, FollowCourseGoal
 from visualization_msgs.msg import Marker
 
 # custom
-from follow_course import follow, parse_args
+from follow_course import follow
 
 # Global variables (yuck)
-DURATION = 120
-VELOCITY = 2.0
-RECONFIGURE_NODE = "jackal/mppi_controller"
-BAG_DEST = os.path.abspath(os.path.join(__file__, "..", "..", "data"))
 PARAMS = ["wheel_radius", "wheel_separation", "slip_left", "slip_right", "icr"]
 TOPICS = ["/tf", "/tf_static", "/clock", "/jackal/cmd_vel", "/jackal/odom",
           "/jackal/follow_course/goal", "/jackal/follow_course/result",
           "/jackal/mppi_controller/parameter_descriptions", "/jackal/mppi_controller/parameter_updates"]
+
+def parse_args():
+    # parse default args from nominal follow_course behavior
+    parser = argparse.ArgumentParser("Continuous data collection of Course Following.")
+    parser.add_argument("-n", "--server-name", default="jackal/follow_course",
+                        help="Name of the action server to look for.")
+    parser.add_argument("-m", "--marker-topic", default="jackal/goal_marker",
+                        help="Name of the marker topic on which to publish.")
+    parser.add_argument("-f", "--frame-id", default="jackal/odom",
+                        help="Coordinate frame of the goal.")
+    parser.add_argument("-x", "--x", default=None, type=float,
+                        help="Major Axis size (m).")
+    parser.add_argument("-y", "--y", default=None, type=float,
+                        help="Minor Axis size (m).")
+    parser.add_argument("-v", "--velocity", default=2.0, type=float,
+                        help="Target linear velocity (m/s).")
+    parser.add_argument("-d", "--duration", default=10.0, type=float,
+                        help="Desired length of time to run.")
+    parser.add_argument("--number", default=-1, type=int,
+                        help="Number of runs to execute; default (-1) is infinite.")
+    parser.add_argument("-D", "--destination", default=None,
+                        help="Location to store bags.")
+    parser.add_argument("-r", "--reconfigure-node", default="jackal/mppi_controller",
+                        help="Node name to connect via dynamic_reconfigure.")
+
+    args,_ = parser.parse_known_args()
+
+    # fill in default args
+    if args.destination is None:
+        # mppi_demo/data/GIT_HASH/
+        hash_ = git.Repo(search_parent_directories=True).head.object.hexsha
+        args.destination = os.path.abspath(os.path.join(__file__, "..", "..", "data", hash_))
 
 def generate_bag_name():
     """ Generate a randomized bag name.
@@ -72,8 +104,6 @@ def execute():
     """
     # get and update default arguments
     args = parse_args()
-    args.duration = DURATION
-    args.velocity = VELOCITY
 
     # randomly permute parameters
     params = {}
@@ -81,8 +111,8 @@ def execute():
         params[param] = random.uniform(Options.min[param], Options.max[param])
 
     # create dynamic reconfigure client
-    rospy.loginfo("Waiting (indefinitely) for dynamic reconfigure client {}".format(RECONFIGURE_NODE))
-    reconfigure_client = dynamic_reconfigure.client.Client(RECONFIGURE_NODE)
+    rospy.loginfo("Waiting (indefinitely) for dynamic reconfigure client {}".format(args.reconfigure_node))
+    reconfigure_client = dynamic_reconfigure.client.Client(args.reconfigure_node)
 
     # create publisher for marker
     marker_pub = rospy.Publisher(args.marker_topic, Marker, queue_size=1, latch=True)
