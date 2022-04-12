@@ -13,6 +13,7 @@ RUN apt-get update \
       wget \
       gnupg \
       python3-pip \
+      git \
     && rm -rf /var/apt/lists/*
 
 # add ignition keys / PPA
@@ -44,7 +45,8 @@ RUN pip install \
       pandas \
       seaborn \
       scikit-optimize \
-      sklearn
+      sklearn \
+      gitpython
 
 # default drop into a byobu shell in expected mounting directory
 WORKDIR /workspace
