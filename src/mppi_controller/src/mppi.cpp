@@ -166,7 +166,8 @@ Matrix MPPI::evaluate(const Eigen::Ref<Statef> state, const nav_msgs::Odometry& 
   // publish debugging information
   visualize(debug_pub_, potentials, costs, pose, best_index);
 
-  return potentials.col(best_index);
+  // return best command
+  return commands.col(best_index);
 }
 
 } // namespace mppi
