@@ -58,7 +58,7 @@ def parse_args():
                         help="Minor Axis size (m).")
     parser.add_argument("-v", "--velocity", default=2.0, type=float,
                         help="Target linear velocity (m/s).")
-    parser.add_argument("-d", "--duration", default=10.0, type=float,
+    parser.add_argument("-d", "--duration", default=90.0, type=float,
                         help="Desired length of time to run.")
     parser.add_argument("--number", default=-1, type=int,
                         help="Number of runs to execute; default (-1) is infinite.")
@@ -75,20 +75,25 @@ def parse_args():
         hash_ = git.Repo(search_parent_directories=True).head.object.hexsha
         args.destination = os.path.abspath(os.path.join(__file__, "..", "..", "data", hash_))
 
+    # make sure the folder exists
+    os.makedirs(args.destination, exist_ok=True)
+
+    return args
+
 def generate_bag_name():
     """ Generate a randomized bag name.
     """
     return "run_" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 @contextmanager
-def bag_record(name):
+def bag_record(destination, name):
     """ Context manager to ensure bags get closed properly.
 
     Proper destruction of subprocesses from:
     https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true
     """
     # start bagging
-    full_path = os.path.join(BAG_DEST, name)
+    full_path = os.path.join(destination, name)
     rospy.loginfo("Saving bag to {}".format(full_path))
     cmd = "rosbag record --lz4 -O {} {}".format(full_path, " ".join(TOPICS))
     rospy.logdebug("Bagging via \n\t'{}'".format(cmd))
@@ -99,12 +104,9 @@ def bag_record(name):
         # stop bag
         os.killpg(os.getpgid(p.pid), signal.SIGTERM)
 
-def execute():
+def execute(args):
     """ Full end-to-end execution of a single goal.
     """
-    # get and update default arguments
-    args = parse_args()
-
     # randomly permute parameters
     params = {}
     for param in PARAMS:
@@ -123,7 +125,7 @@ def execute():
     client.wait_for_server()
 
     # once action server is up we can start bagging
-    with bag_record(generate_bag_name()):
+    with bag_record(args.destination, generate_bag_name()):
         # wait a bit to make sure the bag opened properly
         rospy.sleep(1.0)
 
@@ -143,9 +145,16 @@ if __name__ == "__main__":
     # initialize ROS node
     rospy.init_node('follow_course_data_collection')
 
+    # get arguments
+    args = parse_args()
+
     # continue sending goals until stop is requested
+    count = 0
     while not rospy.is_shutdown():
+        if args.number > 0 and count > args.number:
+            print("Finished out {} runs.".format(args.number))
+        count += 1
         try:
-            execute()
+            execute(args)
         except KeyboardInterrupt:
             print("Stop requested! Last run might be corrupted...")
