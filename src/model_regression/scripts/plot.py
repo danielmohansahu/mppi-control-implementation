@@ -47,8 +47,8 @@ def plot_results(filename, data):
 
     # initialize axes
     fig,axs = plt.subplots(3)
-    fig.suptitle("Results for '{}'\n Cost: {:.2f} | Wheel Radius: {:.2f} | Wheel Base: {:.2f} | Slip : ({:.2f}, {:.2f})".format(
-        filename, data.cost, data.params["wheel_radius"], data.params["wheel_separation"], data.params["slip_left"], data.params["slip_right"]))
+    fig.suptitle("Results for '{}'\n Cost: {:.2f} | Wheel Radius: {:.2f} | Wheel Base: {:.2f} | Slip : ({:.2f}, {:.2f}) | ICR: {:.2f}".format(
+        filename, data.cost, data.params["wheel_radius"], data.params["wheel_separation"], data.params["slip_left"], data.params["slip_right"], data.params["icr"]))
 
     ### first subplot is XY performance vs. desired trajectory
     

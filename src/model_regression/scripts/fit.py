@@ -29,7 +29,7 @@ from mppi_controller.cfg import MPPIOptionsConfig as Options
 DEFAULT_FILENAME = os.path.abspath(os.path.join(__file__, "..", "..", "data", "collated_runs.csv"))
 
 # independent variables
-INDEPENDENT_VARS = ["wheel_radius", "wheel_separation", "slip_left", "slip_right"]
+INDEPENDENT_VARS = ["wheel_radius", "wheel_separation", "slip_left", "slip_right", "icr"]
 
 # dependent variable(s)
 DEPENDENT_VAR = "cost"

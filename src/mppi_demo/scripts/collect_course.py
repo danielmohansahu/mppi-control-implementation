@@ -38,7 +38,7 @@ DURATION = 120
 VELOCITY = 2.0
 RECONFIGURE_NODE = "jackal/mppi_controller"
 BAG_DEST = os.path.abspath(os.path.join(__file__, "..", "..", "data"))
-PARAMS = ["wheel_radius", "wheel_separation", "slip_left", "slip_right"] #, "icr"]
+PARAMS = ["wheel_radius", "wheel_separation", "slip_left", "slip_right", "icr"]
 TOPICS = ["/tf", "/tf_static", "/clock", "/jackal/cmd_vel", "/jackal/odom",
           "/jackal/follow_course/goal", "/jackal/follow_course/result",
           "/jackal/mppi_controller/parameter_descriptions", "/jackal/mppi_controller/parameter_updates"]
