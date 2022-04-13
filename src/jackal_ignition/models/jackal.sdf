@@ -272,9 +272,8 @@ p
       <wheel_radius>0.098</wheel_radius>
 
       <topic>jackal/cmd_vel</topic>
-      <odom_topic>jackal/odom_raw</odom_topic>
+      <odom_topic>jackal/odom</odom_topic>
       <tf_topic>tf</tf_topic>
-      <frame_id>jackal/odom_raw</frame_id>
     </plugin>
   </model>
 </sdf>
