@@ -40,7 +40,7 @@ from follow_course import follow
 # Global variables (yuck)
 PARAMS = ["wheel_radius", "wheel_separation", "slip_left", "slip_right", "icr"]
 TOPICS = ["/tf", "/tf_static", "/clock", "/jackal/cmd_vel", "/jackal/odom",
-          "/jackal/follow_course/goal", "/jackal/follow_course/result",
+          "/jackal/follow_course/goal", "/jackal/follow_course/result", "/jackal/cmd_vel_debug"
           "/jackal/mppi_controller/parameter_descriptions", "/jackal/mppi_controller/parameter_updates"]
 
 def parse_args():
