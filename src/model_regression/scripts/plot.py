@@ -8,6 +8,7 @@ Displays:
 """
 
 # STL
+import sys
 import argparse
 
 # MatPlotLib
@@ -24,7 +25,7 @@ TOPICS = {
     "goal": "/jackal/follow_course/goal",
     "result": "/jackal/follow_course/result",
     "odom": "/jackal/odom",
-    "cmd": "/jackal/cmd_vel",
+    "cmd": "/jackal/cmd_vel_debug",
 }
 
 def parse_args():
@@ -42,8 +43,9 @@ def plot_results(filename, data):
     X = [msg.pose.pose.position.x for msg in data.odom]
     Y = [msg.pose.pose.position.y for msg in data.odom]
     VX = [msg.twist.twist.linear.x for msg in data.odom]
-    CT = [msg.linear.x for msg in data.cmd]
-    CS = [msg.angular.z for msg in data.cmd]
+    CT = [msg.header.stamp.to_sec() - T0 for msg in data.cmd]
+    CL = [msg.twist.linear.x for msg in data.cmd]
+    CA = [msg.twist.angular.z for msg in data.cmd]
 
     # initialize axes
     fig,axs = plt.subplots(3)
@@ -68,7 +70,10 @@ def plot_results(filename, data):
     axs[1].set_ylabel("Vx (m/s)")
 
     ### third subplot is commanded twist / steer
-    #@TODO! need timestamps.
+    axs[2].plot(CT, CL, label="Linear (m/s)")
+    axs[2].plot(CT, CA, label="Angular (rad/s)")
+    axs[2].set_title("Commanded Velocity")
+    axs[2].set_xlabel("Time (s)")
 
     ### common operations
     axs[0].grid()
@@ -90,6 +95,12 @@ if __name__ == "__main__":
                           cmd_topic=TOPICS["cmd"],
                           cost_function=cost_function)
     data = extractor.extract(args.bag)
+
+    # check if we errored out
+    if not data:
+        print("Unable to plot bag '{}'".format(args.bag))
+        sys.exit(1)
+        
 
     # construct plots
     plot_results(args.bag.split("/")[-1], data)
