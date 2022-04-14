@@ -9,8 +9,20 @@ set -eo pipefail
 # get path to here
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
-# build and tag docker image
-docker build -t ghcr.io/danielmohansahu/mppi-impl:latest -f $SCRIPTPATH/Dockerfile .
+# target / expected image name
+DOCKERIMAGE="ghcr.io/danielmohansahu/mppi-impl:latest"
+
+# check if we want to force rebuild the image
+REBUILD=0
+if [[ "$#" -eq 1 ]]; then
+  echo "Forcing a rebuild of docker."
+  REBUILD=1
+fi
+
+# build and tag docker image, if it's not present
+if [[ $REBUILD -eq 1 ]] || [[ ! $(docker inspect $DOCKERIMAGE) ]]; then
+  docker build --cache-from $DOCKERIMAGE -t $DOCKERIMAGE -f $SCRIPTPATH/Dockerfile .
+fi
 
 # drop into a container
 docker run \
@@ -29,6 +41,6 @@ docker run \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -v /etc/localtime:/etc/localtime:ro \
     -v $SCRIPTPATH:/workspace \
-    ghcr.io/danielmohansahu/mppi-impl:latest \
+    $DOCKERIMAGE \
     byobu
 
