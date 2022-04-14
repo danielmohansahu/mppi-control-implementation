@@ -112,6 +112,10 @@ if __name__ == "__main__":
     # parse input arguments
     args = parse_args()
 
+    # use optimal params, if desired
+    if args.optimal:
+        set_optimal_params(args)
+
     # create action client
     client = actionlib.SimpleActionClient(args.server_name, FollowCourseAction)
     rospy.loginfo("Waiting (indefinitely) for action server {}".format(args.server_name))
