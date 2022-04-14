@@ -13,6 +13,9 @@ The entirety of this project is encapsulated inside a Docker image for portabili
 # xhost allow Docker; unsafe command!
 xhost +si:localuser:root
 
+# optionally download a pre-compiled Docker Image
+docker pull ghcr.io/danielmohansahu/mppi-impl:latest
+
 # build image and drop into a container
 ./build_and_run.sh
 ```
@@ -44,9 +47,14 @@ rosrun mppi_demo follow_course.py -x 5 -y 5 -d 60
 
 Examples of each of the above demos executing for the nominal (read: untuned) system:
 
-Waypoint Goal | Follow Course Goal | Default Simulation Environment
---- | --- | ---
-![](docs/waypoint_goals.gif) | ![](docs/course_following.gif) | ![](docs/simulation_environment.png)
+Waypoint Goal | Follow Course Goal
+--- | ---
+![](docs/waypoint_goals.gif) | ![](docs/course_following.gif)
+
+This is all executed in the default simulation environment:
+
+![](docs/simulation_environment.png)
+
 
 
 #### Learning a Forward Model

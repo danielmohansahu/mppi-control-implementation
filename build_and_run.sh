@@ -10,7 +10,7 @@ set -eo pipefail
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # build and tag docker image
-docker build -t mppi-impl:latest -f $SCRIPTPATH/Dockerfile .
+docker build -t ghcr.io/danielmohansahu/mppi-impl:latest -f $SCRIPTPATH/Dockerfile .
 
 # drop into a container
 docker run \
@@ -29,6 +29,6 @@ docker run \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -v /etc/localtime:/etc/localtime:ro \
     -v $SCRIPTPATH:/workspace \
-    mppi-impl:latest \
+    ghcr.io/danielmohansahu/mppi-impl:latest \
     byobu
 
