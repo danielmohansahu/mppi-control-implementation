@@ -44,9 +44,9 @@ rosrun mppi_demo follow_course.py -x 5 -y 5 -d 60
 
 Examples of each of the above demos executing for the nominal (read: untuned) system:
 
-Waypoint Goal | Follow Course Goal
---- | ---
-![](docs/waypoint_goals.gif) | ![](docs/course_following.gif)
+Waypoint Goal | Follow Course Goal | Default Simulation Environment
+--- | --- | ---
+![](docs/waypoint_goals.gif) | ![](docs/course_following.gif) | ![](docs/simulation_environment.png)
 
 
 #### Learning a Forward Model
@@ -82,6 +82,10 @@ rosrun model_regression fit.py
 
 # This script will print out the optimized parameters once completed
 ```
+
+Extracted Data | Example Optimal Params
+--- | ---
+![](docs/collated_run_data.png) | ![](docs/optimal_params.png)
 
 [^1]: There are plenty of other issues that affect system performance, like controller timing, sampling stochasticity, vehicle constraints, bugs in my code, etc. We ignore these to focus on the more manageable problem of better forward modeling.
 
