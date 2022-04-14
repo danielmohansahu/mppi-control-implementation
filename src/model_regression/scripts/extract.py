@@ -52,7 +52,7 @@ if __name__ == "__main__":
                           cost_function=cost_function)
 
     # get list of bags to consider
-    bags = glob(os.path.join(args.directory, "*.bag"))
+    bags = glob(os.path.join(args.directory,"**","*.bag"), recursive=True)
     bags.sort()
 
     print("Extracting data from {} bags found in \n{}.".format(len(bags), args.directory))
