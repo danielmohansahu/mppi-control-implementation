@@ -11,7 +11,9 @@ import argparse
 # ROS
 import rospy
 import actionlib
+import dynamic_reconfigure.client
 from mppi_controller.msg import FollowCourseAction, FollowCourseGoal
+from mppi_controller.cfg import MPPIOptionsConfig as Options
 from visualization_msgs.msg import Marker
 
 def parse_args():
@@ -32,6 +34,10 @@ def parse_args():
                         help="Target linear velocity (m/s).")
     parser.add_argument("-d", "--duration", default=10.0, type=float,
                         help="Desired length of time to run.")
+    parser.add_argument("-o", "--optimal", action="store_true",
+                        help="Use (precomputed) optimal parameters.")
+    parser.add_argument("-r", "--reconfigure-node", default="jackal/mppi_controller",
+                        help="Node name to connect via dynamic_reconfigure.")
     args, _ = parser.parse_known_args()
     return args
 
@@ -77,6 +83,27 @@ def follow(args, client, pub):
 
     # is there a way to verify failure?
     return True
+
+def set_optimal_params(args):
+    """ Tell the robot to use optimized parameters.
+    """
+    # connect to reconfigure client
+    rospy.loginfo("Waiting (indefinitely) for dynamic reconfigure client {}".format(args.reconfigure_node))
+    reconfigure_client = dynamic_reconfigure.client.Client(args.reconfigure_node)
+
+    # define params
+    params = {
+        "wheel_radius": 0.089,
+        "wheel_separation": 0.556,
+        "slip_left": 0.068,
+        "slip_right": 0.061,
+        "icr": 0.028
+    }
+
+    # send params
+    reconfigure_client.update_configuration(params)
+    rospy.sleep(1)
+    print("Optimal params set.")
 
 if __name__ == "__main__":
     # initialize node
