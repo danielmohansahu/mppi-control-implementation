@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 """ Fit a given dataset via Regression.
-
-Notes:
-    Plot pairwise via 'sns.pairplot(df)'
 """
 
 # STL
@@ -38,6 +35,8 @@ def parse_args():
     parser = argparse.ArgumentParser("Attempt to fit a model to collated data from bagged runs.")
     parser.add_argument("-f", "--filename", default=DEFAULT_FILENAME,
                         help="File containing collected data.")
+    parser.add_argument("-p", "--plot", action="store_true",
+                        help="Plot relationships between features.")
     args,_ = parser.parse_known_args()
     return args
 
@@ -103,6 +102,11 @@ if __name__ == "__main__":
 
     # get the subset of columns we really care about
     df = dataframe_full[ INDEPENDENT_VARS + [DEPENDENT_VAR] ]
+
+    # plot, if desired
+    if args.plot:
+        sns.pairplot(df)
+        plt.show()
 
     # attempt to fit a regression model:
     # evaluation mode, for reference
