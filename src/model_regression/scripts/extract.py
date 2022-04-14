@@ -55,7 +55,7 @@ if __name__ == "__main__":
     bags = glob(os.path.join(args.directory,"**","*.bag"), recursive=True)
     bags.sort()
 
-    print("Extracting data from {} bags found in \n{}.".format(len(bags), args.directory))
+    print("Extracting data from {} bags found in '{}'".format(len(bags), args.directory))
     errors = []
     for bag in tqdm(bags):
         if not extractor.to_csv(bag):
