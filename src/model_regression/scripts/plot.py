@@ -25,7 +25,7 @@ TOPICS = {
     "goal": "/jackal/follow_course/goal",
     "result": "/jackal/follow_course/result",
     "odom": "/jackal/odom",
-    "cmd": "/jackal/cmd_vel_debug",
+    "cmd": "/jackal/cmd_vel",
 }
 
 def parse_args():
@@ -43,9 +43,9 @@ def plot_results(filename, data):
     X = [msg.pose.pose.position.x for msg in data.odom]
     Y = [msg.pose.pose.position.y for msg in data.odom]
     VX = [msg.twist.twist.linear.x for msg in data.odom]
-    CT = [msg.header.stamp.to_sec() - T0 for msg in data.cmd]
-    CL = [msg.twist.linear.x for msg in data.cmd]
-    CA = [msg.twist.angular.z for msg in data.cmd]
+    # CT = [msg.header.stamp.to_sec() - T0 for msg in data.cmd]
+    # CL = [msg.twist.linear.x for msg in data.cmd]
+    # CA = [msg.twist.angular.z for msg in data.cmd]
 
     # initialize axes
     fig,axs = plt.subplots(3)
@@ -69,11 +69,11 @@ def plot_results(filename, data):
     axs[1].set_xlabel("Time (s)")
     axs[1].set_ylabel("Vx (m/s)")
 
-    ### third subplot is commanded twist / steer
-    axs[2].plot(CT, CL, label="Linear (m/s)")
-    axs[2].plot(CT, CA, label="Angular (rad/s)")
-    axs[2].set_title("Commanded Velocity")
-    axs[2].set_xlabel("Time (s)")
+    # ### third subplot is commanded twist / steer
+    # axs[2].plot(CT, CL, label="Linear (m/s)")
+    # axs[2].plot(CT, CA, label="Angular (rad/s)")
+    # axs[2].set_title("Commanded Velocity")
+    # axs[2].set_xlabel("Time (s)")
 
     ### common operations
     axs[0].grid()
