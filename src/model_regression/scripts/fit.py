@@ -22,6 +22,9 @@ from sklearn import metrics, model_selection
 # Custom
 from mppi_controller.cfg import MPPIOptionsConfig as Options
 
+# ignore some false positive warnings
+pandas.options.mode.chained_assignment = None  # default='warn'
+
 # nominal location of full extracted data
 DEFAULT_FILENAME = os.path.abspath(os.path.join(__file__, "..", "..", "data", "collated_runs.csv"))
 
@@ -29,7 +32,8 @@ DEFAULT_FILENAME = os.path.abspath(os.path.join(__file__, "..", "..", "data", "c
 INDEPENDENT_VARS = ["wheel_radius", "wheel_separation", "slip_left", "slip_right", "icr"]
 
 # dependent variable(s)
-DEPENDENT_VAR = "cost"
+DEPENDENT_VARS = ["cost", "log_cost", "pos_cost", "vel_cost", "ctrl_cost"]
+DEFAULT_DEPENDENT_VAR = "cost"
 
 def parse_args():
     parser = argparse.ArgumentParser("Attempt to fit a model to collated data from bagged runs.")
@@ -37,10 +41,15 @@ def parse_args():
                         help="File containing collected data.")
     parser.add_argument("-p", "--plot", action="store_true",
                         help="Plot relationships between features.")
+    parser.add_argument("-l", "--log", action="store_true",
+                        help="Apply natural logarithm to targer.")
+    parser.add_argument("-d", "--dependent_variable", type=str, default=DEFAULT_DEPENDENT_VAR,
+                        help="Target variable to use in regression. Default is '{}', options are {}.".format(
+                            DEFAULT_DEPENDENT_VAR, DEPENDENT_VARS))
     args,_ = parser.parse_known_args()
     return args
 
-def fit_model(df, features = INDEPENDENT_VARS, target = DEPENDENT_VAR, evaluate = True):
+def fit_model(df, features = INDEPENDENT_VARS, target = DEFAULT_DEPENDENT_VAR, evaluate = True):
     """ Attempt to fit a model to the given data.
 
     Returns:
@@ -101,7 +110,9 @@ if __name__ == "__main__":
     dataframe_full = pandas.read_csv(args.filename)
 
     # get the subset of columns we really care about
-    df = dataframe_full[ INDEPENDENT_VARS + [DEPENDENT_VAR] ]
+    df = dataframe_full[ INDEPENDENT_VARS + [args.dependent_variable] ]
+    if args.log:
+        df[args.dependent_variable] = np.log(df[args.dependent_variable])
 
     # plot, if desired
     if args.plot:
@@ -111,8 +122,8 @@ if __name__ == "__main__":
     # attempt to fit a regression model:
     # evaluation mode, for reference
     print("Fitting multivariate Polynomial model...")
-    _ = fit_model(df, INDEPENDENT_VARS, DEPENDENT_VAR, True)
-    function = fit_model(df, INDEPENDENT_VARS, DEPENDENT_VAR, False)
+    _ = fit_model(df, INDEPENDENT_VARS, args.dependent_variable, True)
+    function = fit_model(df, INDEPENDENT_VARS, args.dependent_variable, False)
 
     # use bayesian optimization to find the "optimal" parameters
     print("Finding 'optimal' parameters to minimize cost...")

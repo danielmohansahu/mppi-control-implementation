@@ -6,6 +6,17 @@ Defines a cost function for evaluating the performance of a given bagged run.
 # STL
 import math
 import statistics
+from dataclasses import dataclass
+
+@dataclass
+class CostResult:
+    """ Convenience class to output costs
+    """
+    pos: float = 0  # cost from position deviation
+    vel: float = 0  # cost from velocity deviation
+    ctr: float = 0  # cost from controller jerkiness
+    cost: float = 0 # total cost
+    log: float = 0  # natural log of total cost
 
 class Ellipse():
     """ Convenience class to calculate deviance from desired trajectory.
@@ -49,7 +60,7 @@ class Ellipse():
         # return the estimated distance
         return math.sqrt( (xc - x0) ** 2.0 + (yc - y0) ** 2.0 )
 
-def cost_function(goal, result, odom, cmd):
+def cost_function(goal, result, odom, cmd, grace_period=10):
     """ Apply known heuristics to assign cost to the given run."
 
     Cost is comprised of:
@@ -67,28 +78,33 @@ def cost_function(goal, result, odom, cmd):
     # instantiate helper class
     ellipse = Ellipse(goal.goal.major, goal.goal.minor)
 
-    # initialize cost
-    cumulative_cost = 0.0
+    # initial results
+    costs = CostResult()
 
     # add in cost associated with deviation from desired trajectory and velocity
-    cost = 0.0
     for msg in odom:
-        if msg.header.stamp < start:
+        if msg.header.stamp.to_sec() < (start.to_sec() + grace_period):
             # message received before goal sent; ignore
             continue
         elif msg.header.stamp > end:
             # we're done; stop
             break
         # add cost for position deviation
-        cost += ellipse.dist(msg.pose.pose.position.x, msg.pose.pose.position.y)
+        costs.pos += ellipse.dist(msg.pose.pose.position.x, msg.pose.pose.position.y)
         # add cost for velocity deviation
-        cost += abs(goal.goal.velocity - msg.twist.twist.linear.x)
-    cumulative_cost += cost / len(odom)
+        costs.vel += abs(goal.goal.velocity - msg.twist.twist.linear.x)
+
+    # normalize to number of messages
+    costs.pos /= len(odom)
+    costs.vel /= len(odom)
 
     # add in controller stddev cost
     #  note that we don't restrict timestamps here; hopefully not a big deal?
-    cumulative_cost += statistics.stdev([msg.linear.x for msg in cmd])
-    cumulative_cost += statistics.stdev([msg.angular.z for msg in cmd])
+    costs.ctr += statistics.stdev([msg.linear.x for msg in cmd])
+    costs.ctr += statistics.stdev([msg.angular.z for msg in cmd])
+    costs.ctr /= 2
 
-    # done!
-    return cumulative_cost
+    # done! return cost breakdown (and total)
+    costs.cost = costs.pos + costs.vel + costs.ctr
+    costs.log = math.log(costs.cost)
+    return costs

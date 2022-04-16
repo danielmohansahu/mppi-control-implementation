@@ -10,11 +10,15 @@ the driving independent variables.
 # STL
 import os
 import csv
+import math
 from collections import OrderedDict
 from dataclasses import dataclass
 
 # ROS
 import rosbag
+
+# Custom
+from .cost import CostResult
 
 class Extractor:
     """ Object Oriented class for extracting parameters + costs from a given bag.
@@ -24,14 +28,14 @@ class Extractor:
     class Results:
         """ Convenience class to output results.
         """
-        params: ...         # state of all parameters
-        goal: ...           # goal of this run
-        result: ...         # results of this run
-        odom: list          # list of odometry messages
-        cmd: list           # list of control messages
-        cost: float = 0     # estimated cost
+        params: ...                 # state of all parameters
+        goal: ...                   # goal of this run
+        result: ...                 # results of this run
+        odom: list                  # list of odometry messages
+        cmd: list                   # list of control messages
+        costs: CostResult = None    # estimated costs
 
-    def __init__(self, params_topic, goal_topic, result_topic, odom_topic, cmd_topic, cost_function, output=None):
+    def __init__(self, params_topic, goal_topic, result_topic, odom_topic, cmd_topic, cost_function, output=None, grace_period=10):
         # expected topics for param / cost extraction
         self.topics = {
             "params": params_topic,
@@ -43,6 +47,9 @@ class Extractor:
 
         # save cost function
         self.cost_function = cost_function
+
+        # amount of time to allow for initialization
+        self.grace_period = grace_period
 
         # initialize output file
         self.output = output
@@ -107,7 +114,7 @@ class Extractor:
             cmd=data["cmd"])
 
         # get total cost from the other topics
-        res.cost = self.cost_function(res.goal, res.result, res.odom, res.cmd)
+        res.costs = self.cost_function(res.goal, res.result, res.odom, res.cmd)
 
         # return collected information
         return res
@@ -134,10 +141,10 @@ class Extractor:
 
             # write header iff this is our first line
             if first_time:
-                header = ["filename"] + list(res.params.keys()) + ["cost"]
+                header = ["filename"] + list(res.params.keys()) + ["cost", "log_cost", "pos_cost", "vel_cost", "ctrl_cost"]
                 writer.writerow(header)
 
-            writer.writerow([filepath.split("/")[-1]] + list(res.params.values()) + [res.cost])
+            writer.writerow([filepath.split("/")[-1]] + list(res.params.values()) + [res.costs.cost, res.costs.log, res.costs.pos, res.costs.vel, res.costs.ctr])
 
         # indicate success
         return True
