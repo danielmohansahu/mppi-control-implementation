@@ -16,8 +16,11 @@ import numpy as np
 import skopt
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
-from sklearn.neighbors import LocalOutlierFactor
 from sklearn import metrics, model_selection
+
+from sklearn.covariance import EllipticEnvelope
+from sklearn.neighbors import LocalOutlierFactor
+from sklearn.ensemble import IsolationForest
 
 # Custom
 from mppi_controller.cfg import MPPIOptionsConfig as Options
@@ -49,7 +52,7 @@ def parse_args():
     args,_ = parser.parse_known_args()
     return args
 
-def fit_model(df, features = INDEPENDENT_VARS, target = DEFAULT_DEPENDENT_VAR, evaluate = True):
+def fit_model(df, outliers, features = INDEPENDENT_VARS, target = DEFAULT_DEPENDENT_VAR, evaluate = True):
     """ Attempt to fit a model to the given data.
 
     Returns:
@@ -61,17 +64,11 @@ def fit_model(df, features = INDEPENDENT_VARS, target = DEFAULT_DEPENDENT_VAR, e
     https://data36.com/polynomial-regression-python-scikit-learn/
     """
 
-    # perform outlier rejection on target variable
-    #  @TODO think this through; we could have cost nonlinearities...
-    #  This implictly assumes that poor cost performance is a result of issues other than the parameters assigned
-    lof = LocalOutlierFactor()
-    yhat = lof.fit_predict( df[[target]] )
-    mask = yhat != -1
-
     # initialize model and data
     poly = PolynomialFeatures(degree=2, include_bias=False)
     model = LinearRegression()
     # get rid of bad points and fit to a polynomial
+    mask = (outliers == False)
     X = poly.fit_transform(df[features][mask])
     y = df[target][mask]
 
@@ -111,19 +108,31 @@ if __name__ == "__main__":
 
     # get the subset of columns we really care about
     df = dataframe_full[ INDEPENDENT_VARS + [args.dependent_variable] ]
+
+    # apply natural logarithm, if desired
     if args.log:
         df[args.dependent_variable] = np.log(df[args.dependent_variable])
 
+    # perform outlier rejection on target variable
+    #  @TODO think this through; we could have cost nonlinearities...
+    #  This implictly assumes that poor cost performance is a result of issues other than the parameters assigned
+    lof = IsolationForest(contamination=0.05)
+    yhat = lof.fit_predict( df[[args.dependent_variable]] )
+    outliers = (yhat == -1)
+
     # plot, if desired
     if args.plot:
-        sns.pairplot(df)
+        # pairwise plot of raw data
+        df_plot = df.copy()
+        df_plot["outliers"] = outliers
+        sns.pairplot(df_plot, hue="outliers")
         plt.show()
 
     # attempt to fit a regression model:
-    # evaluation mode, for reference
+    #  also perform evaluation mode, for reference
     print("Fitting multivariate Polynomial model...")
-    _ = fit_model(df, INDEPENDENT_VARS, args.dependent_variable, True)
-    function = fit_model(df, INDEPENDENT_VARS, args.dependent_variable, False)
+    _ = fit_model(df, outliers, INDEPENDENT_VARS, args.dependent_variable, True)
+    function = fit_model(df, outliers, INDEPENDENT_VARS, args.dependent_variable, False)
 
     # use bayesian optimization to find the "optimal" parameters
     print("Finding 'optimal' parameters to minimize cost...")
@@ -131,4 +140,32 @@ if __name__ == "__main__":
     res = skopt.gp_minimize(function, bounds)
 
     print("Found 'optimal' parameters:\n\t" + "\n\t".join(["{}: {}".format(INDEPENDENT_VARS[i], res.x[i]) for i in range(len(INDEPENDENT_VARS))]))
+
+    # show regression lines against raw data
+    if args.plot:
+        # pairwise plot
+        df_plot = dh.copy()
+        df_plot["outliers"] = outliers
+        grid = sns.pairplot(df_plot)
+
+        # iterate through component axes
+        for ax in grid.figure.axes:
+            xlabel,ylabel = ax.get_xlabel(), ax.get_ylabel()
+
+            # skip axes that aren't plotting our target in Y against something interesting
+            if ylabel != args.dependent_variable or xlabel == ylabel:
+                continue
+
+            # reduce our optimized function to 1D, replacing other args
+            #  with their optimal value
+            idx = INDEPENDENT_VARS.index(xlabel)
+            def f(x):
+                return function(*[v if i != idx else x for i,v in enumerate(res.x) ])
+
+            # plot this modified function
+            X = np.linspace(*ax.get_xlim())
+            Y = [f(x) for x in X]
+            ax.plot(X, Y, 'k')
+
+        plt.show()
 
