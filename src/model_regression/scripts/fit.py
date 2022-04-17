@@ -114,9 +114,7 @@ if __name__ == "__main__":
         df[args.dependent_variable] = np.log(df[args.dependent_variable])
 
     # perform outlier rejection on target variable
-    #  @TODO think this through; we could have cost nonlinearities...
-    #  This implictly assumes that poor cost performance is a result of issues other than the parameters assigned
-    lof = IsolationForest(contamination=0.05)
+    lof = IsolationForest(contamination=0.025)
     yhat = lof.fit_predict( df[[args.dependent_variable]] )
     outliers = (yhat == -1)
 
@@ -144,16 +142,16 @@ if __name__ == "__main__":
     # show regression lines against raw data
     if args.plot:
         # pairwise plot
-        df_plot = dh.copy()
+        df_plot = df.copy()
         df_plot["outliers"] = outliers
-        grid = sns.pairplot(df_plot)
+        grid = sns.pairplot(df_plot, hue="outliers")
 
         # iterate through component axes
         for ax in grid.figure.axes:
             xlabel,ylabel = ax.get_xlabel(), ax.get_ylabel()
 
             # skip axes that aren't plotting our target in Y against something interesting
-            if ylabel != args.dependent_variable or xlabel == ylabel:
+            if ylabel != args.dependent_variable or xlabel == ylabel or xlabel == "outliers":
                 continue
 
             # reduce our optimized function to 1D, replacing other args
