@@ -4,8 +4,11 @@
 
 # STL
 import os
+import sys
 from glob import glob
 import argparse
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # TQDM
 from tqdm import tqdm
@@ -35,6 +38,8 @@ def parse_args():
                         help="Location of bagged data.")
     parser.add_argument("-o", "--output", default=DEFAULT_OUTPUT,
                         help="Location to store CSV data.")
+    parser.add_argument("-w", "--workers", default=multiprocessing.cpu_count()-1, type=int,
+                        help="Number of concurrent threads.")
     args,_ = parser.parse_known_args()
     return args
 
@@ -57,9 +62,17 @@ if __name__ == "__main__":
 
     print("Extracting data from {} bags found in '{}'".format(len(bags), args.directory))
     errors = []
-    for bag in tqdm(bags):
-        if not extractor.to_csv(bag):
-            errors.append(bag.split("/")[-1])
+    with tqdm(total=len(bags)) as pbar:
+        manager = multiprocessing.Manager()
+        lock = manager.Lock()
+        with ProcessPoolExecutor(max_workers = args.workers) as executor:
+            futures = {executor.submit(extractor.to_csv, bag, lock): bag for bag in bags}
+            for future in as_completed(futures):
+                # check if we succeeded
+                if not future.result():
+                    errors.append(futures[future])
+                # update progress bar
+                pbar.update(1)
 
     print("Finished data extraction! {}/{} successful.".format(len(bags) - len(errors), len(bags)))
     if len(errors) != 0:

@@ -119,7 +119,7 @@ class Extractor:
         # return collected information
         return res
 
-    def to_csv(self, filepath):
+    def to_csv(self, filepath, lock=None):
         """ Wrapper script to extract data and write to a CSV
 
         We assume the given params are in the correct order.
@@ -134,6 +134,10 @@ class Extractor:
         if not res:
             return False
 
+        # use lock, if given
+        if lock is not None:
+            lock.acquire()
+
         # if we got this far we have good data; write
         first_time = os.path.getsize(self.output) == 0
         with open(self.output, "a") as csvfile:
@@ -145,6 +149,10 @@ class Extractor:
                 writer.writerow(header)
 
             writer.writerow([filepath.split("/")[-1]] + list(res.params.values()) + [res.costs.cost, res.costs.log, res.costs.pos, res.costs.vel, res.costs.ctr])
+
+        # use lock, if given
+        if lock is not None:
+            lock.release()
 
         # indicate success
         return True
