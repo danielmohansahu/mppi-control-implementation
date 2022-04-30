@@ -91,11 +91,34 @@ rosrun model_regression fit.py
 # This script will print out the optimized parameters once completed
 ```
 
-Extracted Data | Example Optimal Params
---- | ---
-![](docs/collated_run_data.png) | ![](docs/optimal_params.png)
-
 [^1]: There are plenty of other issues that affect system performance, like controller timing, sampling stochasticity, vehicle constraints, bugs in my code, etc. We ignore these to focus on the more manageable problem of better forward modeling.
+
+## Results
+
+After collecting approximately 600 training examples we received the following "optimal" parameters. This process is inherently stochastic, but these are fairly close to what we expected, e.g. the parameters outlined in our ![model definition](src/jackal_ignition/models/jackal.urdf.xacro). It's worth noting that since we only rely on the platform's reported odometry and have no ground truth estimate we effectively ignore much of the Gazebo simulation's fidelity. More on this in the Issues section below.
+
+![](docs/optimal_params.png)
+
+After training we went back and tested performance by manually sending some course and waypoint goals. The results aren't a shocking improvement[^2], but they do show a slight improvement in our velocity goal.
+
+Goal Type | Default Params | Optimal Params
+--- | --- | ---
+Waypoint | ![](docs/default-waypoint-demo.gif) | ![](optimal-waypoint-demo.gif)
+Course | ![](default-follow-course-demo.gif) | ![](optimal-follow-course-demo.gif)
+
+[^2]: A slightly philosophical tangent. I considered artificially selecting a "bad" set of forward model parameters at the outset of this project to potentially highlight the improvements, but ultimately decided against it. I find it to be somewhat disengenuous to take that approach because, in practice, one would very rarely be implementing this sort of learning to replace a completely untuned model.
+
+## Issues / Future Work
+
+There is a continuum of potential improvements for and issues with this project, but I want to highlight some of the most pressing.
+
+1. As mentioned above, the Ignition world doesn't really provide anything of value in this project. That is because we're taking the reported open loop odometry from the Jackal model as our true odometry. For example, if the platform gets flipped over it will still report "success" in achieving goals despite the fact that its wheels are spinning uselessly. Technically this doesn't affect the results of this effort, since we're then just learning the odometry of the Ignition Jackal model in isolation, but it would be much more interesting to also encapsulate the wheel-ground interaction and all the other minutae of the full simulation. The correct way to do this would be to use ground truth odometry.
+
+2. Our forward model learning process only converges for a fairly narrow range of parameters. We experimented with [increasing the bounds](https://github.com/danielmohansahu/mppi-control-implementation/commit/d4949d17e8b25ad12e661847fd2997cf47f6b34c), but that resulted in "optimal" slip params that saturated the widened bounds and failed to converge on the expected physical parameters like wheel radii. I have a vague suspicion this is due to a bug rather than some fundamental limitation of this approach, but was unable to confirm or deny that. Results of each are as follows:
+
+Model Fitting (Narrow) | Model Fitting (Wide)
+--- | ---
+![](docs/fit_results_narrow_param_range.png) | ![](docs/fit_results_wide_param_range.png)
 
 ## Theory
 
