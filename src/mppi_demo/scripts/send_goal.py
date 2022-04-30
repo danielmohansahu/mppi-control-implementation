@@ -35,6 +35,10 @@ def parse_args():
                         help="Target linear velocity (m/s).")
     parser.add_argument("-t", "--timeout", default=0.0, type=float,
                         help="Timeout for the goal; values <= 0.0 will be interpreted as infinity.")
+    parser.add_argument("-o", "--optimal", action="store_true",
+                        help="Use (precomputed) optimal parameters.")
+    parser.add_argument("-rn", "--reconfigure-node", default="jackal/mppi_controller",
+                        help="Node name to connect via dynamic_reconfigure.")
     
     args, _ = parser.parse_known_args()
     return args
@@ -46,12 +50,37 @@ def random_if_none(x):
         return x
     return 10.0 * (random.random() - 0.5)
 
+def set_optimal_params(args):
+    """ Tell the robot to use optimized parameters.
+    """
+    # connect to reconfigure client
+    rospy.loginfo("Waiting (indefinitely) for dynamic reconfigure client {}".format(args.reconfigure_node))
+    reconfigure_client = dynamic_reconfigure.client.Client(args.reconfigure_node)
+
+    # define params
+    params = {
+        "wheel_radius": 0.089,
+        "wheel_separation": 0.556,
+        "slip_left": 0.068,
+        "slip_right": 0.061,
+        "icr": 0.028
+    }
+
+    # send params
+    reconfigure_client.update_configuration(params)
+    rospy.sleep(1)
+    print("Optimal params set.")
+
 if __name__ == "__main__":
     # initialize node
     rospy.init_node("send_goal")
 
     # parse input arguments
     args = parse_args()
+
+    # use optimal params, if desired
+    if args.optimal:
+        set_optimal_params(args)
 
     # create action client
     client = actionlib.SimpleActionClient(args.server_name, WaypointAction)
