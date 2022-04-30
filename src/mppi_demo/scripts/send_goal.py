@@ -11,6 +11,7 @@ import argparse
 # ROS
 import rospy
 import actionlib
+import dynamic_reconfigure.client
 from mppi_controller.msg import WaypointAction, WaypointGoal
 from geometry_msgs.msg import PoseStamped
 from visualization_msgs.msg import Marker
