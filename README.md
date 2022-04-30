@@ -120,9 +120,19 @@ Model Fitting (Narrow) | Model Fitting (Wide)
 --- | ---
 ![](docs/fit_results_narrow_param_range.png) | ![](docs/fit_results_wide_param_range.png)
 
-## Theory
+## Theoretical Overview
 
+This project covers a number of topics in Robotics and Machine learning that are the subject of a plethora of papers, books, articles, classes, etc. This section attempts to explain some of the more important topics at a very broad level rather than diving into the technical details and underlying theory. For those sorts of details please see the Acknowledgements section below.
 
+Speaking generally, we created a simulation (using Ignition Gazebo) of a particular robotic unmanned ground vehicle (UGV) (the Clearpath Jackal). Then, we wrote a Controller which converts goals (desired locations) and states (our position and velocity estimates) into actions (steering and throttle commands) which are used to drive the robot autonomously.
+
+This Controller is an example of [Model Predictive Control (MPC)](https://en.wikipedia.org/wiki/Model_predictive_control), which basically means we use an approximation of our platform (the Forward Model) to figure out the best actions to take over a limited time horizon, like the next 5 seconds. This particular form of MPC is called Model Predictive Path Integral (MPPI) control, which is distinguished from other forms of MPC by how the model is considered. Instead of analytically or numerically converting the Forward Model (actions -> states) into an Inverse Model (states -> actions), we randomly sample the Forward Model to consider a whole host of possible actions and pick the best one. This process of randomly sampling to figure out an underlying process is called the [Monte Carlo method](https://en.wikipedia.org/wiki/Monte_Carlo_method). We use this method twice, because currently we have a problem.
+
+The MPPI controller we developed works well _if_ we have a good Forward Model. If our Forward Model is terrible then we'll have terrible results, because our controller can't predict what the robot will actually do. One way to figure out our Forward Model is to use analytical methods, like looking at the underlying physics of the robot. Another option would be to backtrack and use Machine Learning to solve the problem without a model at all [(e.g. Unsupervised Learning)](https://en.wikipedia.org/wiki/Unsupervised_learning). We chose to use a method that bridges the gap between these approaches, allowing us to use our existing knowledge of the robot (i.e. that it's a Skid-Steer platform) but also not worry about the difficult analytical methods required to calculate things like coefficients of friction. This is called [Supervised Learning](https://en.wikipedia.org/wiki/Supervised_learning), because we are dictating the structure of the problem. Specifically, we know the equation for the Forward Model and want to just learn specific parameters.
+
+In order to learn the "optimal" Forward Model we again employ the Monte Carlo method to collect a host of training examples. These are simulations of the robot driving around and trying to follow an elliptical path with randomized Forward Model parameters. Each training example is then evaluated using a cost function, which lets us compare the performance of different runs. For example, a run which doesn't maintain our desired velocity will score lower than a run which does (all other factors being equal). Finally, we can figure out the underlying equation which returns the cost of given set of parameters, `f(wheel_radius, wheel_seperation, slip, ...) = cost`. We find this equation using [Linear Regression](https://en.wikipedia.org/wiki/Regression_analysis) and use the global minimum (i.e. the set of parameters where the cost is lowest) to determine our "optimal" Forward Model parameters.
+
+That's the theory in _very_ broad strokes. Please see below for much more detailed explanations.
 
 ## Acknowledgements
 
