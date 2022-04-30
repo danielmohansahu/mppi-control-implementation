@@ -93,11 +93,11 @@ def set_optimal_params(args):
 
     # define params
     params = {
-        "wheel_radius": 0.089,
-        "wheel_separation": 0.556,
-        "slip_left": 0.068,
-        "slip_right": 0.061,
-        "icr": 0.028
+        "wheel_radius": 0.150,
+        "wheel_separation": 0.614,
+        "slip_left": 0.057,
+        "slip_right": 0.054,
+        "icr": 0.023
     }
 
     # send params
