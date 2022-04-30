@@ -3,7 +3,7 @@ Implementation of Model Predictive Path Integral Control, for learning purposes.
 
 This project provides a rough implementation of the MPPI controller descrived in [Model Predictive Path Integral Control using Covariance Variable Importance Sampling](https://arxiv.org/pdf/1509.01149.pdf), as well as an approach for learning the robot's Forward Model via Linear Regression. A simulation-based development environment with a [Clearpath Jackal](https://clearpathrobotics.com/jackal-small-unmanned-ground-vehicle/) is provided for demonstration purposes.
 
-Please see the [theory section](#Theory) for an overview of the methodology of this project.
+Please see the [theory section](#theoretical-overview) for an overview of the methodology of this project.
 
 ## Installation and Usage
 
