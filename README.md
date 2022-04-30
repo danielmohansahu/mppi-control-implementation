@@ -1,7 +1,9 @@
 # mppi-control-implementation
 Implementation of Model Predictive Path Integral Control, for learning purposes.
 
-This project provides a rough implementation of the MPPI controller descrived in [Model Predictive Path Integral Control using Covariance Variable Importance Sampling](https://arxiv.org/pdf/1509.01149.pdf). A simulation-based development environment with a [Clearpath Jackal](https://clearpathrobotics.com/jackal-small-unmanned-ground-vehicle/) is provided for demonstration purposes.
+This project provides a rough implementation of the MPPI controller descrived in [Model Predictive Path Integral Control using Covariance Variable Importance Sampling](https://arxiv.org/pdf/1509.01149.pdf), as well as an approach for learning the robot's Forward Model via Linear Regression. A simulation-based development environment with a [Clearpath Jackal](https://clearpathrobotics.com/jackal-small-unmanned-ground-vehicle/) is provided for demonstration purposes.
+
+Please see the [theory section](#Theory) for an overview of the methodology of this project.
 
 ## Installation and Usage
 
@@ -95,7 +97,7 @@ rosrun model_regression fit.py
 
 ## Results
 
-After collecting approximately 600 training examples we received the following "optimal" parameters. This process is inherently stochastic, but these are fairly close to what we expected, e.g. the parameters outlined in our ![model definition](src/jackal_ignition/models/jackal.urdf.xacro). It's worth noting that since we only rely on the platform's reported odometry and have no ground truth estimate we effectively ignore much of the Gazebo simulation's fidelity. More on this in the Issues section below.
+After collecting approximately 600 training examples we received the following "optimal" parameters. This process is inherently stochastic, but these are fairly close to what we expected, e.g. the parameters outlined in our ![model definition](src/jackal_ignition/models/jackal.urdf.xacro). It's worth noting that since we only rely on the platform's reported odometry and have no ground truth estimate we effectively ignore much of the Gazebo simulation's fidelity. More on this in the [Issues section](#issues--future-work) below.
 
 ![](docs/optimal_params.png)
 
@@ -122,7 +124,7 @@ Model Fitting (Narrow) | Model Fitting (Wide)
 
 ## Theoretical Overview
 
-This project covers a number of topics in Robotics and Machine learning that are the subject of a plethora of papers, books, articles, classes, etc. This section attempts to explain some of the more important topics at a very broad level rather than diving into the technical details and underlying theory. For those sorts of details please see the Acknowledgements section below.
+This project covers a number of topics in Robotics and Machine learning that are the subject of a plethora of papers, books, articles, classes, etc. This section attempts to explain some of the more important topics at a very broad level rather than diving into the technical details and underlying theory. For those sorts of details please see the [Acknowledgements section](#acknowledgements) below.
 
 Speaking generally, we created a simulation (using Ignition Gazebo) of a particular robotic unmanned ground vehicle (UGV) (the Clearpath Jackal). Then, we wrote a Controller which converts goals (desired locations) and states (our position and velocity estimates) into actions (steering and throttle commands) which are used to drive the robot autonomously.
 
