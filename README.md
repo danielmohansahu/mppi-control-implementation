@@ -103,8 +103,8 @@ After training we went back and tested performance by manually sending some cour
 
 Goal Type | Default Params | Optimal Params
 --- | --- | ---
-Waypoint | ![](docs/default-waypoint-demo.gif) | ![](optimal-waypoint-demo.gif)
-Course | ![](default-follow-course-demo.gif) | ![](optimal-follow-course-demo.gif)
+Waypoint | ![](docs/default-waypoint-demo.gif) | ![](docs/optimal-waypoint-demo.gif)
+Course | ![](docs/default-follow-course-demo.gif) | ![](docs/optimal-follow-course-demo.gif)
 
 [^2]: A slightly philosophical tangent. I considered artificially selecting a "bad" set of forward model parameters at the outset of this project to potentially highlight the improvements, but ultimately decided against it. I find it to be somewhat disengenuous to take that approach because, in practice, one would very rarely be implementing this sort of learning to replace a completely untuned model.
 
